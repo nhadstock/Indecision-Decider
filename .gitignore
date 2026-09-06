@@ -1,0 +1,10 @@
+# Dependencies & Environments
+node_modules/
+backend/venv/
+backend/__pycache__/
+backend/alembic/__pycache__/
+backend/*.db
+
+# Build outputs
+frontend/dist/
+.DS_Store

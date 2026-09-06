@@ -1,0 +1,86 @@
+import { useEffect, useState } from 'react';
+import axios from 'axios';
+import { Trash2 } from 'lucide-react';
+
+// TypeScript Interface: This tells our frontend exactly what a backend 'Activity' looks like
+interface Activity {
+  id: number;
+  name: string;
+  cost: string;
+  location: string;
+  intensity: string;
+  duration: number;
+  season: string;
+  spun_count: number;
+}
+
+function App() {
+  const [activities, setActivities] = useState<Activity[]>([]);
+
+  // useEffect runs this code once when the component first loads
+  useEffect(() => {
+    loadActivities();
+  }, []);
+
+  const loadActivities = async () => {
+    try {
+      // Axios fetches the JSON list from your FastAPI server
+      const response = await axios.get('http://127.0.0.1:8000/activities/');
+      setActivities(response.data);
+    } catch (error) {
+      console.error("Error fetching activities:", error);
+    }
+  };
+
+  const handleDelete = async (id: number) => {
+    try {
+      await axios.delete(`http://127.0.0.1:8000/activities/${id}`);
+      loadActivities(); // Refresh the list automatically after deleting
+    } catch (error) {
+      console.error("Error deleting activity:", error);
+    }
+  };
+
+  return (
+    <div className="min-h-screen bg-slate-50 p-4 font-sans text-slate-800">
+      {/* max-w-md mx-auto forces a phone-sized layout even on desktop browsers */}
+      <div className="max-w-md mx-auto space-y-6">
+        
+        <header className="text-center pt-8 pb-4">
+          <h1 className="text-3xl font-extrabold text-indigo-600">Activity Decider</h1>
+          <p className="text-slate-500 text-sm mt-1">What are we doing today?</p>
+        </header>
+
+        <div className="space-y-3">
+          {activities.length === 0 ? (
+            <p className="text-center text-slate-400 italic">No activities yet. Let's add some!</p>
+          ) : (
+            activities.map((activity) => (
+              <div key={activity.id} className="bg-white p-4 rounded-xl shadow-sm border border-slate-100 flex justify-between items-center">
+                <div>
+                  <h3 className="font-bold text-lg">{activity.name}</h3>
+                  <div className="flex gap-2 text-xs text-slate-500 mt-2">
+                    <span className="bg-slate-100 px-2 py-1 rounded-full">{activity.location}</span>
+                    <span className="bg-slate-100 px-2 py-1 rounded-full">{activity.cost}</span>
+                    <span className="bg-slate-100 px-2 py-1 rounded-full">{activity.duration}m</span>
+                  </div>
+                </div>
+                
+                <button 
+                  onClick={() => handleDelete(activity.id)}
+                  className="p-2 text-red-400 hover:text-red-600 hover:bg-red-50 rounded-full transition-colors"
+                  aria-label="Delete activity"
+                >
+                  <Trash2 size={20} />
+                </button>
+              </div>
+            ))
+          )}
+        </div>
+
+      </div>
+    </div>
+  );
+}
+
+export default App;
