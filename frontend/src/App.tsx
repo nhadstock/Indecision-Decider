@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import axios from 'axios';
 import { Trash2, PlusCircle, Filter } from 'lucide-react';
+import DeciderWheel from './DeciderWheel';
 
 interface Activity {
   id: number;
@@ -11,7 +12,7 @@ interface Activity {
   duration: number;
   season: string;
   spun_count: number;
-}
+} // <-- ADD THIS CLOSING BRACKET
 
 function App() {
   const [activities, setActivities] = useState<Activity[]>([]);
@@ -113,6 +114,9 @@ function App() {
             </select>
           </div>
         </div>
+
+        {/* The Decider Wheel */}
+        <DeciderWheel activities={activities} />
 
         {/* Activity List */}
         <div className="space-y-3">

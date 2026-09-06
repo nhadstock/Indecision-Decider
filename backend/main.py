@@ -1,9 +1,10 @@
-from fastapi import FastAPI, Depends, HTTPException
+from typing import Optional
+from fastapi import FastAPI, Depends, HTTPException, Query
 from fastapi.middleware.cors import CORSMiddleware
+from sqlalchemy import select
 from sqlalchemy.orm import Session
 import models, schemas
 from database import SessionLocal, engine
-from typing import Optional
 
 app = FastAPI(title="Activity Decider API")
 
@@ -32,24 +33,22 @@ def create_activity(activity: schemas.ActivityCreate, db: Session = Depends(get_
 
 @app.get("/activities/", response_model=list[schemas.ActivityResponse])
 def read_activities(
-    skip: int = 0, 
-    limit: int = 100, 
-    cost: Optional[str] = None,
-    location: Optional[str] = None,
-    intensity: Optional[str] = None,
-    season: Optional[str] = None,
+    cost: Optional[str] = Query(None, description="Filter by cost"),
+    location: Optional[str] = Query(None, description="Filter by Indoor or Outdoor"),
+    intensity: Optional[str] = Query(None, description="Filter by Low, Med, High"),
     db: Session = Depends(get_db)
 ):
-    query = db.query(models.Activity)
+    stmt = select(models.Activity)
+
     if cost:
-        query = query.filter(models.Activity.cost == cost)
+        stmt = stmt.where(models.Activity.cost == cost)
     if location:
-        query = query.filter(models.Activity.location == location)
+        stmt = stmt.where(models.Activity.location == location)
     if intensity:
-        query = query.filter(models.Activity.intensity == intensity)
-    if season:
-        query = query.filter(models.Activity.season == season)
-    return query.offset(skip).limit(limit).all()
+        stmt = stmt.where(models.Activity.intensity == intensity)
+
+    result = db.execute(stmt)
+    return result.scalars().all()
 
 @app.delete("/activities/{activity_id}")
 def delete_activity(activity_id: int, db: Session = Depends(get_db)):
