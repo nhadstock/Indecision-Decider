@@ -1,10 +1,13 @@
+import os
 from sqlalchemy import create_engine
 from sqlalchemy.orm import declarative_base, sessionmaker
 
-# This creates a local SQLite file named activity_decider.db
-SQLALCHEMY_DATABASE_URL = "sqlite:///./activity_decider.db"
+# Ensure the persistent data directory exists
+os.makedirs("./data", exist_ok=True)
 
-# check_same_thread=False is specifically required for SQLite in FastAPI
+# Point SQLite to the volume-mapped folder
+SQLALCHEMY_DATABASE_URL = "sqlite:///./data/activity_decider.db"
+
 engine = create_engine(
     SQLALCHEMY_DATABASE_URL, connect_args={"check_same_thread": False}
 )

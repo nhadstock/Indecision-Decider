@@ -1,4 +1,5 @@
 #!/bin/bash
+# to run chmod +x start_dev.sh
 # Trap Ctrl+C so it cleanly kills both servers when you exit
 trap 'kill %1; kill %2' SIGINT
 

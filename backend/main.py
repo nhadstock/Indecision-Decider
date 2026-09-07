@@ -5,6 +5,11 @@ from sqlalchemy import select
 from sqlalchemy.orm import Session
 import models, schemas
 from database import SessionLocal, engine
+from fastapi.staticfiles import StaticFiles
+from fastapi.responses import FileResponse
+import os
+
+models.Base.metadata.create_all(bind=engine)
 
 app = FastAPI(title="Activity Decider API")
 
@@ -68,3 +73,12 @@ def spin_activity(activity_id: int, db: Session = Depends(get_db)):
     db.commit()
     db.refresh(db_activity)
     return db_activity
+
+    # Serve static files if they exist (Production mode)
+ui_dir = os.path.join(os.path.dirname(__file__), "static")
+if os.path.exists(ui_dir):
+    app.mount("/", StaticFiles(directory=ui_dir, html=True), name="ui")
+
+    @app.exception_handler(404)
+    async def fallback_to_react(request, exc):
+        return FileResponse(os.path.join(ui_dir, "index.html"))

@@ -28,14 +28,15 @@ function App() {
     loadActivities();
   }, [filterLocation, filterCost]); // Reloads list automatically whenever filters change
 
-  const loadActivities = async () => {
+const loadActivities = async () => {
     try {
       // Build dynamic query parameters object for Axios
       const params: any = {};
       if (filterLocation) params.location = filterLocation;
       if (filterCost) params.cost = filterCost;
 
-      const response = await axios.get('http://127.0.0.1:8000/activities/', { params });
+      // URL changed to relative path
+      const response = await axios.get('/activities/', { params });
       setActivities(response.data);
     } catch (error) {
       console.error("Error fetching activities:", error);
@@ -44,7 +45,8 @@ function App() {
 
   const handleDelete = async (id: number) => {
     try {
-      await axios.delete(`http://127.0.0.1:8000/activities/${id}`);
+      // URL changed to relative path
+      await axios.delete(`/activities/${id}`);
       loadActivities();
     } catch (error) {
       console.error("Error deleting activity:", error);
@@ -54,7 +56,8 @@ function App() {
   const handleCreate = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
-      await axios.post('http://127.0.0.1:8000/activities/', newActivity);
+      // URL changed to relative path
+      await axios.post('/activities/', newActivity);
       setNewActivity({ name: '', cost: '$', location: 'Indoor', intensity: 'Low', duration: 60, season: 'Any' });
       loadActivities();
     } catch (error) {
