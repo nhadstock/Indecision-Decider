@@ -1,5 +1,5 @@
 from typing import Optional
-from fastapi import FastAPI, Depends, HTTPException, Query
+from fastapi import FastAPI, Depends, HTTPException, Query, UploadFile, File
 from fastapi.middleware.cors import CORSMiddleware
 from sqlalchemy import select
 from sqlalchemy.orm import Session
@@ -8,6 +8,8 @@ from database import SessionLocal, engine
 from fastapi.staticfiles import StaticFiles
 from fastapi.responses import FileResponse
 import os
+import csv
+import io
 
 models.Base.metadata.create_all(bind=engine)
 
@@ -40,7 +42,10 @@ def create_activity(activity: schemas.ActivityCreate, db: Session = Depends(get_
 def read_activities(
     cost: Optional[str] = Query(None, description="Filter by cost"),
     location: Optional[str] = Query(None, description="Filter by Indoor or Outdoor"),
-    intensity: Optional[str] = Query(None, description="Filter by Low, Med, High"),
+    season: Optional[str] = Query(None, description="Filter by season"),
+    include_group: Optional[str] = Query(None, description="Filter by group inclusion"),
+    physical_energy: Optional[str] = Query(None, description="Filter by physical energy"),
+    mental_energy: Optional[str] = Query(None, description="Filter by mental energy"),
     db: Session = Depends(get_db)
 ):
     stmt = select(models.Activity)
@@ -49,8 +54,17 @@ def read_activities(
         stmt = stmt.where(models.Activity.cost == cost)
     if location:
         stmt = stmt.where(models.Activity.location == location)
-    if intensity:
-        stmt = stmt.where(models.Activity.intensity == intensity)
+    if season:
+        stmt = stmt.where(
+            (models.Activity.season.contains(season)) | 
+            (models.Activity.season == "Any")
+        )
+    if include_group:
+        stmt = stmt.where(models.Activity.include_group == include_group)
+    if physical_energy:
+        stmt = stmt.where(models.Activity.physical_energy == physical_energy)
+    if mental_energy:
+        stmt = stmt.where(models.Activity.mental_energy == mental_energy)
 
     result = db.execute(stmt)
     return result.scalars().all()
@@ -73,6 +87,45 @@ def spin_activity(activity_id: int, db: Session = Depends(get_db)):
     db.commit()
     db.refresh(db_activity)
     return db_activity
+
+@app.post("/activities/upload")
+async def upload_csv(file: UploadFile = File(...), db: Session = Depends(get_db)):
+    if not file.filename.endswith('.csv'):
+        raise HTTPException(status_code=400, detail="File must be a CSV")
+    
+    try:
+        # Read the file into memory and decode it
+        contents = await file.read()
+        decoded = contents.decode('utf-8')
+        
+        # Parse the CSV
+        csv_reader = csv.DictReader(io.StringIO(decoded))
+        
+        activities_added = 0
+        for row in csv_reader:
+            # Basic validation: ensure required keys exist and aren't completely empty
+            if not row.get('name'):
+                continue
+                
+            db_activity = models.Activity(
+                name=row.get('name', '').strip(),
+                cost=row.get('cost', '$').strip(),
+                location=row.get('location', 'Indoor').strip(),
+                duration=int(row.get('duration', 60)),
+                season=row.get('season', 'Any').strip(),
+                include_group=row.get('include_group', 'No').strip(),
+                physical_energy=row.get('physical_energy', 'Low').strip(),
+                mental_energy=row.get('mental_energy', 'Low').strip()
+            )
+            db.add(db_activity)
+            activities_added += 1
+            
+        db.commit()
+        return {"message": f"Successfully imported {activities_added} activities"}
+        
+    except Exception as e:
+        db.rollback()
+        raise HTTPException(status_code=500, detail=f"Error processing CSV: {str(e)}")
 
     # Serve static files if they exist (Production mode)
 ui_dir = os.path.join(os.path.dirname(__file__), "static")

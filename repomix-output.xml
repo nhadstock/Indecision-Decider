@@ -55,6 +55,8 @@ backend/
   models.py
   requirements.txt
   schemas.py
+data/
+  activity_decider.db
 frontend/
   public/
     favicon.svg
@@ -70,8 +72,6 @@ frontend/
     index.css
     main.tsx
   .gitignore
-  docker-compose.yml
-  Dockerfile
   eslint.config.js
   index.html
   package.json
@@ -93,96 +93,6 @@ README.md
 
 <files>
 This section contains the contents of the repository's files.
-
-<file path="backend/requirements.txt">
-fastapi>=0.110.0
-uvicorn>=0.29.0
-sqlalchemy>=2.0.0
-alembic>=1.13.0
-pydantic>=2.6.0
-</file>
-
-<file path="frontend/docker-compose.yml">
-services:
-  decider-app:
-    build: .
-    container_name: activity-decider
-    ports:
-      - "8000:8000"
-    volumes:
-      - ./data:/app/backend/data
-    restart: unless-stopped
-</file>
-
-<file path="frontend/Dockerfile">
-# Stage 1: Build the React Frontend
-FROM node:20-alpine AS frontend-builder
-WORKDIR /app/frontend
-COPY frontend/package*.json ./
-RUN npm install --legacy-peer-deps
-COPY frontend/ .
-RUN npm run build
-
-# Stage 2: Serve with FastAPI
-FROM python:3.12-slim
-WORKDIR /app
-
-# Install backend dependencies
-# Note: You will need to create a requirements.txt file in your backend folder!
-COPY backend/requirements.txt .
-RUN pip install --no-cache-dir -r requirements.txt
-
-# Copy backend code
-COPY backend/ /app/backend/
-
-# Copy the built React UI from Stage 1 into the backend's static folder
-COPY --from=frontend-builder /app/frontend/dist /app/backend/static
-
-# Expose port and run Uvicorn
-EXPOSE 8000
-CMD ["uvicorn", "backend.main:app", "--host", "0.0.0.0", "--port", "8000"]
-</file>
-
-<file path="docker-compose.yml">
-services:
-  decider-app:
-    build: .
-    container_name: activity-decider
-    ports:
-      - "8000:8000"
-    volumes:
-      - ./data:/app/backend/data
-    restart: unless-stopped
-</file>
-
-<file path="Dockerfile">
-# Stage 1: Build the React Frontend
-FROM node:20-alpine AS frontend-builder
-WORKDIR /app/frontend
-COPY frontend/package*.json ./
-RUN npm install
-COPY frontend/ .
-RUN npm run build
-
-# Stage 2: Serve with FastAPI
-FROM python:3.12-slim
-WORKDIR /app
-
-# Install backend dependencies
-# Note: You will need to create a requirements.txt file in your backend folder!
-COPY backend/requirements.txt .
-RUN pip install --no-cache-dir -r requirements.txt
-
-# Copy backend code
-COPY backend/ /app/backend/
-
-# Copy the built React UI from Stage 1 into the backend's static folder
-COPY --from=frontend-builder /app/frontend/dist /app/backend/static
-
-# Expose port and run Uvicorn
-EXPOSE 8000
-CMD ["uvicorn", "backend.main:app", "--host", "0.0.0.0", "--port", "8000"]
-</file>
 
 <file path="backend/alembic/versions/896463f0393c_initial_activity_table.py">
 """Initial activity table
@@ -356,176 +266,6 @@ def downgrade() -> None:
     ${downgrades if downgrades else "pass"}
 </file>
 
-<file path="backend/alembic.ini">
-# A generic, single database configuration.
-
-[alembic]
-# path to migration scripts.
-# this is typically a path given in POSIX (e.g. forward slashes)
-# format, relative to the token %(here)s which refers to the location of this
-# ini file
-script_location = %(here)s/alembic
-
-# template used to generate migration file names; The default value is %%(rev)s_%%(slug)s
-# Uncomment the line below if you want the files to be prepended with date and time
-# see https://alembic.sqlalchemy.org/en/latest/tutorial.html#editing-the-ini-file
-# for all available tokens
-# file_template = %%(year)d_%%(month).2d_%%(day).2d_%%(hour).2d%%(minute).2d-%%(rev)s_%%(slug)s
-# Or organize into date-based subdirectories (requires recursive_version_locations = true)
-# file_template = %%(year)d/%%(month).2d/%%(day).2d_%%(hour).2d%%(minute).2d_%%(second).2d_%%(rev)s_%%(slug)s
-
-# sys.path path, will be prepended to sys.path if present.
-# defaults to the current working directory.  for multiple paths, the path separator
-# is defined by "path_separator" below.
-prepend_sys_path = .
-
-
-# timezone to use when rendering the date within the migration file
-# as well as the filename.
-# If specified, requires the tzdata library which can be installed by adding
-# `alembic[tz]` to the pip requirements.
-# string value is passed to ZoneInfo()
-# leave blank for localtime
-# timezone =
-
-# max length of characters to apply to the "slug" field
-# truncate_slug_length = 40
-
-# set to 'true' to run the environment during
-# the 'revision' command, regardless of autogenerate
-# revision_environment = false
-
-# set to 'true' to allow .pyc and .pyo files without
-# a source .py file to be detected as revisions in the
-# versions/ directory
-# sourceless = false
-
-# version location specification; This defaults
-# to <script_location>/versions.  When using multiple version
-# directories, initial revisions must be specified with --version-path.
-# The path separator used here should be the separator specified by "path_separator"
-# below.
-# version_locations = %(here)s/bar:%(here)s/bat:%(here)s/alembic/versions
-
-# path_separator; This indicates what character is used to split lists of file
-# paths, including version_locations and prepend_sys_path within configparser
-# files such as alembic.ini.
-# The default rendered in new alembic.ini files is "os", which uses os.pathsep
-# to provide os-dependent path splitting.
-#
-# Note that in order to support legacy alembic.ini files, this default does NOT
-# take place if path_separator is not present in alembic.ini.  If this
-# option is omitted entirely, fallback logic is as follows:
-#
-# 1. Parsing of the version_locations option falls back to using the legacy
-#    "version_path_separator" key, which if absent then falls back to the legacy
-#    behavior of splitting on spaces and/or commas.
-# 2. Parsing of the prepend_sys_path option falls back to the legacy
-#    behavior of splitting on spaces, commas, or colons.
-#
-# Valid values for path_separator are:
-#
-# path_separator = :
-# path_separator = ;
-# path_separator = space
-# path_separator = newline
-#
-# Use os.pathsep. Default configuration used for new projects.
-path_separator = os
-
-# set to 'true' to search source files recursively
-# in each "version_locations" directory
-# new in Alembic version 1.10
-# recursive_version_locations = false
-
-# the output encoding used when revision files
-# are written from script.py.mako
-# output_encoding = utf-8
-
-# database URL.  This is consumed by the user-maintained env.py script only.
-# other means of configuring database URLs may be customized within the env.py
-# file.
-sqlalchemy.url = sqlite:///./data/activity_decider.db
-
-
-[post_write_hooks]
-# post_write_hooks defines scripts or Python functions that are run
-# on newly generated revision scripts.  See the documentation for further
-# detail and examples
-
-# format using "black" - use the console_scripts runner, against the "black" entrypoint
-# hooks = black
-# black.type = console_scripts
-# black.entrypoint = black
-# black.options = -l 79 REVISION_SCRIPT_FILENAME
-
-# lint with attempts to fix using "ruff" - use the module runner, against the "ruff" module
-# hooks = ruff
-# ruff.type = module
-# ruff.module = ruff
-# ruff.options = check --fix REVISION_SCRIPT_FILENAME
-
-# Alternatively, use the exec runner to execute a binary found on your PATH
-# hooks = ruff
-# ruff.type = exec
-# ruff.executable = ruff
-# ruff.options = check --fix REVISION_SCRIPT_FILENAME
-
-# Logging configuration.  This is also consumed by the user-maintained
-# env.py script only.
-[loggers]
-keys = root,sqlalchemy,alembic
-
-[handlers]
-keys = console
-
-[formatters]
-keys = generic
-
-[logger_root]
-level = WARNING
-handlers = console
-qualname =
-
-[logger_sqlalchemy]
-level = WARNING
-handlers =
-qualname = sqlalchemy.engine
-
-[logger_alembic]
-level = INFO
-handlers =
-qualname = alembic
-
-[handler_console]
-class = StreamHandler
-args = (sys.stderr,)
-level = NOTSET
-formatter = generic
-
-[formatter_generic]
-format = %(levelname)-5.5s [%(name)s] %(message)s
-datefmt = %H:%M:%S
-</file>
-
-<file path="backend/database.py">
-import os
-from sqlalchemy import create_engine
-from sqlalchemy.orm import declarative_base, sessionmaker
-
-# Ensure the persistent data directory exists
-os.makedirs("./data", exist_ok=True)
-
-# Point SQLite to the volume-mapped folder
-SQLALCHEMY_DATABASE_URL = "sqlite:///./data/activity_decider.db"
-
-engine = create_engine(
-    SQLALCHEMY_DATABASE_URL, connect_args={"check_same_thread": False}
-)
-SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
-Base = declarative_base()
-</file>
-
 <file path="backend/models.py">
 from sqlalchemy import Column, Integer, String, DateTime
 from datetime import datetime, timezone
@@ -538,14 +278,25 @@ class Activity(Base):
     name = Column(String, index=True)
     cost = Column(String)        # e.g., "$", "$$", "$$$"
     location = Column(String)    # e.g., "Indoor", "Outdoor"
-    intensity = Column(String)   # e.g., "Low", "Medium", "High"
     duration = Column(Integer)   # Duration in minutes
     season = Column(String)      # e.g., "Any", "Summer", "Winter"
+    include_group = Column(String) # e.g., "Yes", "No"
+    physical_energy = Column(String) # e.g., "Low", "Med", "High"
+    mental_energy = Column(String)   # e.g., "Low", "Med", "High"
     
     # Analytics Tracking
     created_at = Column(DateTime, default=lambda: datetime.now(timezone.utc))
     spun_count = Column(Integer, default=0)
     skipped_count = Column(Integer, default=0)
+</file>
+
+<file path="backend/requirements.txt">
+fastapi>=0.110.0
+uvicorn>=0.29.0
+sqlalchemy>=2.0.0
+alembic>=1.13.0
+pydantic>=2.6.0
+python-multipart>=0.0.9
 </file>
 
 <file path="backend/schemas.py">
@@ -556,9 +307,11 @@ class ActivityBase(BaseModel):
     name: str
     cost: str
     location: str
-    intensity: str
     duration: int
     season: str
+    include_group: str
+    physical_energy: str
+    mental_energy: str
 
 # Used when creating an activity (doesn't need ID or analytics yet)
 class ActivityCreate(ActivityBase):
@@ -925,22 +678,6 @@ export default defineConfig([
 ```
 </file>
 
-<file path="frontend/start_dev.sh">
-#!/bin/bash
-# to run chmod +x start_dev.sh
-# Trap Ctrl+C so it cleanly kills both servers when you exit
-trap 'kill %1; kill %2' SIGINT
-
-echo "Starting FastAPI Backend..."
-(cd backend && source venv/bin/activate && uvicorn main:app --reload) &
-
-echo "Starting React Frontend..."
-(cd frontend && npm run dev) &
-
-# Wait for both processes to run indefinitely
-wait
-</file>
-
 <file path="frontend/tailwind.config.js">
 /** @type {import('tailwindcss').Config} */
 export default {
@@ -1048,6 +785,48 @@ frontend/dist/
 .DS_Store
 </file>
 
+<file path="docker-compose.yml">
+services:
+  decider-app:
+    build: .
+    container_name: activity-decider
+    ports:
+      - "8000:8000"
+    volumes:
+      - ./backend/data:/app/backend/data
+    restart: unless-stopped
+</file>
+
+<file path="Dockerfile">
+# Stage 1: Build the React Frontend
+FROM node:20-alpine AS frontend-builder
+WORKDIR /app/frontend
+COPY frontend/package*.json ./
+RUN npm install --legacy-peer-deps
+COPY frontend/ .
+RUN npm run build
+
+# Stage 2: Serve with FastAPI
+FROM python:3.12-slim
+WORKDIR /app
+
+# Install backend dependencies
+# Note: You will need to create a requirements.txt file in your backend folder!
+COPY backend/requirements.txt .
+RUN pip install --no-cache-dir -r requirements.txt
+
+# Copy backend code
+COPY backend/ /app/backend/
+
+# Copy the built React UI from Stage 1 into the backend's static folder
+COPY --from=frontend-builder /app/frontend/dist /app/backend/static
+
+# Expose port and run Uvicorn
+EXPOSE 8000
+WORKDIR /app/backend
+CMD ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "8000"]
+</file>
+
 <file path="package.json">
 {
   "dependencies": {
@@ -1067,9 +846,235 @@ frontend/dist/
 For the nights when "I don't care, what do you want to do?" turns into a 45-minute standoff. Spin the wheel, end the deadlock, and get back to having fun.
 </file>
 
+<file path="backend/alembic.ini">
+# A generic, single database configuration.
+
+[alembic]
+# path to migration scripts.
+# this is typically a path given in POSIX (e.g. forward slashes)
+# format, relative to the token %(here)s which refers to the location of this
+# ini file
+script_location = %(here)s/alembic
+
+# template used to generate migration file names; The default value is %%(rev)s_%%(slug)s
+# Uncomment the line below if you want the files to be prepended with date and time
+# see https://alembic.sqlalchemy.org/en/latest/tutorial.html#editing-the-ini-file
+# for all available tokens
+# file_template = %%(year)d_%%(month).2d_%%(day).2d_%%(hour).2d%%(minute).2d-%%(rev)s_%%(slug)s
+# Or organize into date-based subdirectories (requires recursive_version_locations = true)
+# file_template = %%(year)d/%%(month).2d/%%(day).2d_%%(hour).2d%%(minute).2d_%%(second).2d_%%(rev)s_%%(slug)s
+
+# sys.path path, will be prepended to sys.path if present.
+# defaults to the current working directory.  for multiple paths, the path separator
+# is defined by "path_separator" below.
+prepend_sys_path = .
+
+
+# timezone to use when rendering the date within the migration file
+# as well as the filename.
+# If specified, requires the tzdata library which can be installed by adding
+# `alembic[tz]` to the pip requirements.
+# string value is passed to ZoneInfo()
+# leave blank for localtime
+# timezone =
+
+# max length of characters to apply to the "slug" field
+# truncate_slug_length = 40
+
+# set to 'true' to run the environment during
+# the 'revision' command, regardless of autogenerate
+# revision_environment = false
+
+# set to 'true' to allow .pyc and .pyo files without
+# a source .py file to be detected as revisions in the
+# versions/ directory
+# sourceless = false
+
+# version location specification; This defaults
+# to <script_location>/versions.  When using multiple version
+# directories, initial revisions must be specified with --version-path.
+# The path separator used here should be the separator specified by "path_separator"
+# below.
+# version_locations = %(here)s/bar:%(here)s/bat:%(here)s/alembic/versions
+
+# path_separator; This indicates what character is used to split lists of file
+# paths, including version_locations and prepend_sys_path within configparser
+# files such as alembic.ini.
+# The default rendered in new alembic.ini files is "os", which uses os.pathsep
+# to provide os-dependent path splitting.
+#
+# Note that in order to support legacy alembic.ini files, this default does NOT
+# take place if path_separator is not present in alembic.ini.  If this
+# option is omitted entirely, fallback logic is as follows:
+#
+# 1. Parsing of the version_locations option falls back to using the legacy
+#    "version_path_separator" key, which if absent then falls back to the legacy
+#    behavior of splitting on spaces and/or commas.
+# 2. Parsing of the prepend_sys_path option falls back to the legacy
+#    behavior of splitting on spaces, commas, or colons.
+#
+# Valid values for path_separator are:
+#
+# path_separator = :
+# path_separator = ;
+# path_separator = space
+# path_separator = newline
+#
+# Use os.pathsep. Default configuration used for new projects.
+path_separator = os
+
+# set to 'true' to search source files recursively
+# in each "version_locations" directory
+# new in Alembic version 1.10
+# recursive_version_locations = false
+
+# the output encoding used when revision files
+# are written from script.py.mako
+# output_encoding = utf-8
+
+# database URL.  This is consumed by the user-maintained env.py script only.
+# other means of configuring database URLs may be customized within the env.py
+# file.
+sqlalchemy.url = sqlite:///./data/activity_decider.db
+
+
+[post_write_hooks]
+# post_write_hooks defines scripts or Python functions that are run
+# on newly generated revision scripts.  See the documentation for further
+# detail and examples
+
+# format using "black" - use the console_scripts runner, against the "black" entrypoint
+# hooks = black
+# black.type = console_scripts
+# black.entrypoint = black
+# black.options = -l 79 REVISION_SCRIPT_FILENAME
+
+# lint with attempts to fix using "ruff" - use the module runner, against the "ruff" module
+# hooks = ruff
+# ruff.type = module
+# ruff.module = ruff
+# ruff.options = check --fix REVISION_SCRIPT_FILENAME
+
+# Alternatively, use the exec runner to execute a binary found on your PATH
+# hooks = ruff
+# ruff.type = exec
+# ruff.executable = ruff
+# ruff.options = check --fix REVISION_SCRIPT_FILENAME
+
+# Logging configuration.  This is also consumed by the user-maintained
+# env.py script only.
+[loggers]
+keys = root,sqlalchemy,alembic
+
+[handlers]
+keys = console
+
+[formatters]
+keys = generic
+
+[logger_root]
+level = WARNING
+handlers = console
+qualname =
+
+[logger_sqlalchemy]
+level = WARNING
+handlers =
+qualname = sqlalchemy.engine
+
+[logger_alembic]
+level = INFO
+handlers =
+qualname = alembic
+
+[handler_console]
+class = StreamHandler
+args = (sys.stderr,)
+level = NOTSET
+formatter = generic
+
+[formatter_generic]
+format = %(levelname)-5.5s [%(name)s] %(message)s
+datefmt = %H:%M:%S
+</file>
+
+<file path="backend/database.py">
+import os
+from sqlalchemy import create_engine
+from sqlalchemy.orm import declarative_base, sessionmaker
+
+# Ensure the persistent data directory exists
+os.makedirs("./data", exist_ok=True)
+
+# Point SQLite to the volume-mapped folder
+SQLALCHEMY_DATABASE_URL = "sqlite:///./data/activity_decider.db"
+
+engine = create_engine(
+    SQLALCHEMY_DATABASE_URL, connect_args={"check_same_thread": False}
+)
+SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
+Base = declarative_base()
+</file>
+
+<file path="frontend/package.json">
+{
+  "name": "frontend",
+  "private": true,
+  "version": "0.0.0",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "tsc -b && vite build",
+    "lint": "eslint .",
+    "preview": "vite preview"
+  },
+  "dependencies": {
+    "axios": "^1.20.0",
+    "lucide-react": "^1.41.0",
+    "react": "^19.2.8",
+    "react-custom-roulette": "^1.4.1",
+    "react-dom": "^19.2.8"
+  },
+  "devDependencies": {
+    "@eslint/js": "^10.0.1",
+    "@tailwindcss/postcss": "^4.3.3",
+    "@types/node": "^24.13.3",
+    "@types/react": "^19.2.18",
+    "@types/react-dom": "^19.2.4",
+    "@vitejs/plugin-react": "^6.1.0",
+    "autoprefixer": "^10.5.5",
+    "eslint": "^10.9.0",
+    "eslint-plugin-react-hooks": "^7.1.1",
+    "eslint-plugin-react-refresh": "^0.5.4",
+    "globals": "^17.11.0",
+    "postcss": "^8.5.28",
+    "tailwindcss": "^4.3.3",
+    "typescript": "~6.0.2",
+    "typescript-eslint": "^8.67.0",
+    "vite": "^8.2.2"
+  }
+}
+</file>
+
+<file path="frontend/start_dev.sh">
+#!/bin/bash
+# to run chmod +x start_dev.sh
+# Trap Ctrl+C so it cleanly kills both servers when you exit
+trap 'kill %1; kill %2' SIGINT
+
+echo "Starting FastAPI Backend..."
+(cd backend && source venv/bin/activate && uvicorn main:app --reload) &
+
+echo "Starting React Frontend..."
+(cd frontend && npm run dev) &
+
+# Wait for both processes to run indefinitely
+wait
+</file>
+
 <file path="backend/main.py">
 from typing import Optional
-from fastapi import FastAPI, Depends, HTTPException, Query
+from fastapi import FastAPI, Depends, HTTPException, Query, UploadFile, File
 from fastapi.middleware.cors import CORSMiddleware
 from sqlalchemy import select
 from sqlalchemy.orm import Session
@@ -1078,6 +1083,8 @@ from database import SessionLocal, engine
 from fastapi.staticfiles import StaticFiles
 from fastapi.responses import FileResponse
 import os
+import csv
+import io
 
 models.Base.metadata.create_all(bind=engine)
 
@@ -1110,7 +1117,10 @@ def create_activity(activity: schemas.ActivityCreate, db: Session = Depends(get_
 def read_activities(
     cost: Optional[str] = Query(None, description="Filter by cost"),
     location: Optional[str] = Query(None, description="Filter by Indoor or Outdoor"),
-    intensity: Optional[str] = Query(None, description="Filter by Low, Med, High"),
+    season: Optional[str] = Query(None, description="Filter by season"),
+    include_group: Optional[str] = Query(None, description="Filter by group inclusion"),
+    physical_energy: Optional[str] = Query(None, description="Filter by physical energy"),
+    mental_energy: Optional[str] = Query(None, description="Filter by mental energy"),
     db: Session = Depends(get_db)
 ):
     stmt = select(models.Activity)
@@ -1119,8 +1129,17 @@ def read_activities(
         stmt = stmt.where(models.Activity.cost == cost)
     if location:
         stmt = stmt.where(models.Activity.location == location)
-    if intensity:
-        stmt = stmt.where(models.Activity.intensity == intensity)
+    if season:
+        stmt = stmt.where(
+            (models.Activity.season.contains(season)) | 
+            (models.Activity.season == "Any")
+        )
+    if include_group:
+        stmt = stmt.where(models.Activity.include_group == include_group)
+    if physical_energy:
+        stmt = stmt.where(models.Activity.physical_energy == physical_energy)
+    if mental_energy:
+        stmt = stmt.where(models.Activity.mental_energy == mental_energy)
 
     result = db.execute(stmt)
     return result.scalars().all()
@@ -1144,6 +1163,45 @@ def spin_activity(activity_id: int, db: Session = Depends(get_db)):
     db.refresh(db_activity)
     return db_activity
 
+@app.post("/activities/upload")
+async def upload_csv(file: UploadFile = File(...), db: Session = Depends(get_db)):
+    if not file.filename.endswith('.csv'):
+        raise HTTPException(status_code=400, detail="File must be a CSV")
+    
+    try:
+        # Read the file into memory and decode it
+        contents = await file.read()
+        decoded = contents.decode('utf-8')
+        
+        # Parse the CSV
+        csv_reader = csv.DictReader(io.StringIO(decoded))
+        
+        activities_added = 0
+        for row in csv_reader:
+            # Basic validation: ensure required keys exist and aren't completely empty
+            if not row.get('name'):
+                continue
+                
+            db_activity = models.Activity(
+                name=row.get('name', '').strip(),
+                cost=row.get('cost', '$').strip(),
+                location=row.get('location', 'Indoor').strip(),
+                duration=int(row.get('duration', 60)),
+                season=row.get('season', 'Any').strip(),
+                include_group=row.get('include_group', 'No').strip(),
+                physical_energy=row.get('physical_energy', 'Low').strip(),
+                mental_energy=row.get('mental_energy', 'Low').strip()
+            )
+            db.add(db_activity)
+            activities_added += 1
+            
+        db.commit()
+        return {"message": f"Successfully imported {activities_added} activities"}
+        
+    except Exception as e:
+        db.rollback()
+        raise HTTPException(status_code=500, detail=f"Error processing CSV: {str(e)}")
+
     # Serve static files if they exist (Production mode)
 ui_dir = os.path.join(os.path.dirname(__file__), "static")
 if os.path.exists(ui_dir):
@@ -1165,16 +1223,18 @@ interface Activity {
   name: string;
   cost: string;
   location: string;
-  intensity: string;
   duration: number;
   season: string;
+  include_group: string;
+  physical_energy: string;
+  mental_energy: string;
   spun_count: number;
 } // <-- ADD THIS CLOSING BRACKET
 
 function App() {
   const [activities, setActivities] = useState<Activity[]>([]);
   const [newActivity, setNewActivity] = useState({
-    name: '', cost: '$', location: 'Indoor', intensity: 'Low', duration: 60, season: 'Any'
+    name: '', cost: '$', location: 'Indoor', duration: 60, season: 'Any', include_group: 'No', physical_energy: 'Low', mental_energy: 'Low'
   });
   
   // Filter States
@@ -1185,14 +1245,15 @@ function App() {
     loadActivities();
   }, [filterLocation, filterCost]); // Reloads list automatically whenever filters change
 
-  const loadActivities = async () => {
+const loadActivities = async () => {
     try {
       // Build dynamic query parameters object for Axios
       const params: any = {};
       if (filterLocation) params.location = filterLocation;
       if (filterCost) params.cost = filterCost;
 
-      const response = await axios.get('http://127.0.0.1:8000/activities/', { params });
+      // URL changed to relative path
+      const response = await axios.get('/activities/', { params });
       setActivities(response.data);
     } catch (error) {
       console.error("Error fetching activities:", error);
@@ -1201,7 +1262,8 @@ function App() {
 
   const handleDelete = async (id: number) => {
     try {
-      await axios.delete(`http://127.0.0.1:8000/activities/${id}`);
+      // URL changed to relative path
+      await axios.delete(`/activities/${id}`);
       loadActivities();
     } catch (error) {
       console.error("Error deleting activity:", error);
@@ -1211,8 +1273,9 @@ function App() {
   const handleCreate = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
-      await axios.post('http://127.0.0.1:8000/activities/', newActivity);
-      setNewActivity({ name: '', cost: '$', location: 'Indoor', intensity: 'Low', duration: 60, season: 'Any' });
+      // URL changed to relative path
+      await axios.post('/activities/', newActivity);
+      setNewActivity({ name: '', cost: '$', location: 'Indoor', duration: 60, season: 'Any', include_group: 'No', physical_energy: 'Low', mental_energy: 'Low' });
       loadActivities();
     } catch (error) {
       console.error("Error creating activity:", error);
@@ -1308,46 +1371,6 @@ function App() {
 }
 
 export default App;
-</file>
-
-<file path="frontend/package.json">
-{
-  "name": "frontend",
-  "private": true,
-  "version": "0.0.0",
-  "type": "module",
-  "scripts": {
-    "dev": "vite",
-    "build": "tsc -b && vite build",
-    "lint": "eslint .",
-    "preview": "vite preview"
-  },
-  "dependencies": {
-    "axios": "^1.20.0",
-    "lucide-react": "^1.41.0",
-    "react": "^19.2.8",
-    "react-custom-roulette": "^1.4.1",
-    "react-dom": "^19.2.8"
-  },
-  "devDependencies": {
-    "@eslint/js": "^10.0.1",
-    "@tailwindcss/postcss": "^4.3.3",
-    "@types/node": "^24.13.3",
-    "@types/react": "^19.2.18",
-    "@types/react-dom": "^19.2.4",
-    "@vitejs/plugin-react": "^6.1.0",
-    "autoprefixer": "^10.5.5",
-    "eslint": "^10.9.0",
-    "eslint-plugin-react-hooks": "^7.1.1",
-    "eslint-plugin-react-refresh": "^0.5.4",
-    "globals": "^17.11.0",
-    "postcss": "^8.5.28",
-    "tailwindcss": "^4.3.3",
-    "typescript": "~6.0.2",
-    "typescript-eslint": "^8.67.0",
-    "vite": "^8.2.2"
-  }
-}
 </file>
 
 </files>

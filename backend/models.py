@@ -9,9 +9,11 @@ class Activity(Base):
     name = Column(String, index=True)
     cost = Column(String)        # e.g., "$", "$$", "$$$"
     location = Column(String)    # e.g., "Indoor", "Outdoor"
-    intensity = Column(String)   # e.g., "Low", "Medium", "High"
     duration = Column(Integer)   # Duration in minutes
     season = Column(String)      # e.g., "Any", "Summer", "Winter"
+    include_group = Column(String) # e.g., "Yes", "No"
+    physical_energy = Column(String) # e.g., "Low", "Med", "High"
+    mental_energy = Column(String)   # e.g., "Low", "Med", "High"
     
     # Analytics Tracking
     created_at = Column(DateTime, default=lambda: datetime.now(timezone.utc))

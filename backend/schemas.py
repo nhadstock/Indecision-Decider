@@ -5,9 +5,11 @@ class ActivityBase(BaseModel):
     name: str
     cost: str
     location: str
-    intensity: str
     duration: int
     season: str
+    include_group: str
+    physical_energy: str
+    mental_energy: str
 
 # Used when creating an activity (doesn't need ID or analytics yet)
 class ActivityCreate(ActivityBase):
