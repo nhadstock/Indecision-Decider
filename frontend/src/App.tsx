@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import axios from 'axios';
 import { Trash2, PlusCircle, Filter } from 'lucide-react';
 import DeciderWheel from './DeciderWheel';
+import ReactSlider from 'react-slider';
 
 interface Activity {
   id: number;
@@ -24,20 +25,39 @@ function App() {
   
   // Filter States
   const [filterLocation, setFilterLocation] = useState<string>('');
-  const [filterCost, setFilterCost] = useState<string>('');
+  const [filterSeason, setFilterSeason] = useState<string>('');
+  const [filterGroup, setFilterGroup] = useState<string>('');
+  
+  // Numerical ranges: Cost [0-3], Energy [0-2]
+  const [costRange, setCostRange] = useState<[number, number]>([0, 3]);
+  const [physicalRange, setPhysicalRange] = useState<[number, number]>([0, 2]);
+  const [mentalRange, setMentalRange] = useState<[number, number]>([0, 2]);
 
   useEffect(() => {
     loadActivities();
-  }, [filterLocation, filterCost]); // Reloads list automatically whenever filters change
+  }, [filterLocation, filterSeason, filterGroup, costRange, physicalRange, mentalRange]);
 
 const loadActivities = async () => {
     try {
       // Build dynamic query parameters object for Axios
       const params: any = {};
       if (filterLocation) params.location = filterLocation;
-      if (filterCost) params.cost = filterCost;
+      if (filterSeason) params.season = filterSeason;
+      if (filterGroup) params.include_group = filterGroup;
+      
+      // Map numerical slider values back to string arrays for the backend
+      const costLabels = ['$', '$$', '$$$', '$$$$'];
+      params.cost = costLabels.slice(costRange[0], costRange[1] + 1);
+      
+      const energyLabels = ['Low', 'Med', 'High'];
+      params.physical_energy = energyLabels.slice(physicalRange[0], physicalRange[1] + 1);
+      params.mental_energy = energyLabels.slice(mentalRange[0], mentalRange[1] + 1);
 
-      const response = await axios.get('http://127.0.0.1:8000/activities/', { params });
+      // Tell Axios to serialize the arrays without brackets for FastAPI
+      const response = await axios.get('http://127.0.0.1:8000/activities/', { 
+        params,
+        paramsSerializer: { indexes: null }
+      });
       setActivities(response.data);
     } catch (error) {
       console.error("Error fetching activities:", error);
@@ -89,31 +109,128 @@ const loadActivities = async () => {
         </form>
 
         {/* Filter Bar */}
-        <div className="bg-slate-800 p-4 rounded-xl shadow-lg border border-slate-700 space-y-3">
-          <div className="flex items-center gap-2 text-xs font-bold text-slate-400 uppercase tracking-wider">
+        <div className="bg-slate-800 p-4 rounded-xl shadow-lg border border-slate-700 space-y-5">
+          <div className="flex items-center gap-2 text-xs font-bold text-slate-400 uppercase tracking-wider border-b border-slate-700 pb-2">
             <Filter size={14} /> Filters
           </div>
-          <div className="flex gap-2">
-            <select 
-              className="flex-1 bg-slate-900 border border-slate-600 text-slate-200 rounded-lg px-3 py-2 text-sm outline-none focus:border-indigo-500"
-              value={filterLocation}
-              onChange={(e) => setFilterLocation(e.target.value)}
-            >
-              <option value="">All Locations</option>
-              <option value="Indoor">Indoor</option>
-              <option value="outdoor">Outdoor</option>
-            </select>
+          
+          <div className="space-y-6">
+            
+            {/* Location & Season Row */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <span className="text-[10px] font-bold text-slate-500 uppercase tracking-widest">📍 Location</span>
+                <div className="flex flex-wrap gap-2">
+                  {['Indoor', 'Outdoor'].map(loc => (
+                    <button key={loc} onClick={() => setFilterLocation(filterLocation === loc ? '' : loc)}
+                      className={`px-3 py-1 text-xs font-medium rounded-full border transition-all ${filterLocation === loc ? 'bg-indigo-600 border-indigo-400 text-white shadow-[0_0_12px_rgba(79,70,229,0.7)]' : 'bg-slate-900 border-slate-700 text-slate-400 hover:border-slate-500'}`}>
+                      {loc}
+                    </button>
+                  ))}
+                </div>
+              </div>
+              <div className="space-y-2">
+                <span className="text-[10px] font-bold text-slate-500 uppercase tracking-widest">⛅ Season</span>
+                <div className="flex flex-wrap gap-2">
+                  {['Spring', 'Summer', 'Fall', 'Winter'].map(s => (
+                    <button key={s} onClick={() => setFilterSeason(filterSeason === s ? '' : s)}
+                      className={`px-3 py-1 text-xs font-medium rounded-full border transition-all ${filterSeason === s ? 'bg-indigo-600 border-indigo-400 text-white shadow-[0_0_12px_rgba(79,70,229,0.7)]' : 'bg-slate-900 border-slate-700 text-slate-400 hover:border-slate-500'}`}>
+                      {s}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            </div>
 
-            <select 
-              className="flex-1 bg-slate-900 border border-slate-600 text-slate-200 rounded-lg px-3 py-2 text-sm outline-none focus:border-indigo-500"
-              value={filterCost}
-              onChange={(e) => setFilterCost(e.target.value)}
-            >
-              <option value="">All Costs</option>
-              <option value="$">$ (Free/Cheap)</option>
-              <option value="$$">$$ (Moderate)</option>
-              <option value="$$$">$$$ (Splurge)</option>
-            </select>
+            {/* Group Toggle */}
+            <div className="space-y-2">
+                <span className="text-[10px] font-bold text-slate-500 uppercase tracking-widest">👥 Include Group?</span>
+                <div className="flex flex-wrap gap-2">
+                  {['Yes', 'No'].map(g => (
+                    <button key={g} onClick={() => setFilterGroup(filterGroup === g ? '' : g)}
+                      className={`px-3 py-1 text-xs font-medium rounded-full border transition-all ${filterGroup === g ? 'bg-indigo-600 border-indigo-400 text-white shadow-[0_0_12px_rgba(79,70,229,0.7)]' : 'bg-slate-900 border-slate-700 text-slate-400 hover:border-slate-500'}`}>
+                      {g}
+                    </button>
+                  ))}
+                </div>
+            </div>
+
+            {/* The Sliders Row */}
+            <div className="grid grid-cols-1 gap-8 pt-5 border-t border-slate-700">
+              
+              {/* Cost Range Slider */}
+              <div className="space-y-4">
+                <div className="flex justify-between items-center">
+                    <span className="text-[10px] font-bold text-slate-500 uppercase tracking-widest">💰 Cost Range</span>
+                    <span className="text-xs font-bold text-indigo-400 drop-shadow-[0_0_5px_rgba(99,102,241,0.8)]">
+                      {['$', '$$', '$$$', '$$$$'][costRange[0]]} - {['$', '$$', '$$$', '$$$$'][costRange[1]]}
+                    </span>
+                </div>
+                <div className="px-2">
+                  <ReactSlider
+                    className="w-full h-2 flex items-center"
+                    thumbClassName="w-5 h-5 bg-slate-200 border-2 border-indigo-500 rounded-full cursor-pointer shadow-[0_0_10px_rgba(99,102,241,0.8)] outline-none -mt-1.5"
+                    trackClassName="h-2 rounded-full"
+                    renderTrack={(props, state) => <div {...props} className={`${props.className} ${state.index === 1 ? 'bg-indigo-500 shadow-[0_0_8px_rgba(99,102,241,0.6)]' : 'bg-slate-900'}`} />}
+                    min={0} max={3} step={1}
+                    value={costRange}
+                    onChange={(val) => setCostRange(val as [number, number])}
+                  />
+                </div>
+                <div className="flex justify-between text-[10px] text-slate-600 font-bold">
+                  <span>$</span><span>$$</span><span>$$$</span><span>$$$$</span>
+                </div>
+              </div>
+
+              {/* Physical Energy Slider */}
+              <div className="space-y-4">
+                <div className="flex justify-between items-center">
+                    <span className="text-[10px] font-bold text-slate-500 uppercase tracking-widest">⚡ Physical Energy</span>
+                    <span className="text-xs font-bold text-indigo-400 drop-shadow-[0_0_5px_rgba(99,102,241,0.8)]">
+                      {['Low', 'Med', 'High'][physicalRange[0]]} - {['Low', 'Med', 'High'][physicalRange[1]]}
+                    </span>
+                </div>
+                <div className="px-2">
+                  <ReactSlider
+                    className="w-full h-2 flex items-center"
+                    thumbClassName="w-5 h-5 bg-slate-200 border-2 border-indigo-500 rounded-full cursor-pointer shadow-[0_0_10px_rgba(99,102,241,0.8)] outline-none -mt-1.5"
+                    trackClassName="h-2 rounded-full"
+                    renderTrack={(props, state) => <div {...props} className={`${props.className} ${state.index === 1 ? 'bg-indigo-500 shadow-[0_0_8px_rgba(99,102,241,0.6)]' : 'bg-slate-900'}`} />}
+                    min={0} max={2} step={1}
+                    value={physicalRange}
+                    onChange={(val) => setPhysicalRange(val as [number, number])}
+                  />
+                </div>
+                <div className="flex justify-between text-[10px] text-slate-600 font-bold">
+                  <span>Low</span><span>Med</span><span>High</span>
+                </div>
+              </div>
+
+              {/* Mental Energy Slider */}
+              <div className="space-y-4">
+                <div className="flex justify-between items-center">
+                    <span className="text-[10px] font-bold text-slate-500 uppercase tracking-widest">🧠 Mental Energy</span>
+                    <span className="text-xs font-bold text-indigo-400 drop-shadow-[0_0_5px_rgba(99,102,241,0.8)]">
+                      {['Low', 'Med', 'High'][mentalRange[0]]} - {['Low', 'Med', 'High'][mentalRange[1]]}
+                    </span>
+                </div>
+                <div className="px-2">
+                  <ReactSlider
+                    className="w-full h-2 flex items-center"
+                    thumbClassName="w-5 h-5 bg-slate-200 border-2 border-indigo-500 rounded-full cursor-pointer shadow-[0_0_10px_rgba(99,102,241,0.8)] outline-none -mt-1.5"
+                    trackClassName="h-2 rounded-full"
+                    renderTrack={(props, state) => <div {...props} className={`${props.className} ${state.index === 1 ? 'bg-indigo-500 shadow-[0_0_8px_rgba(99,102,241,0.6)]' : 'bg-slate-900'}`} />}
+                    min={0} max={2} step={1}
+                    value={mentalRange}
+                    onChange={(val) => setMentalRange(val as [number, number])}
+                  />
+                </div>
+                <div className="flex justify-between text-[10px] text-slate-600 font-bold">
+                  <span>Low</span><span>Med</span><span>High</span>
+                </div>
+              </div>
+
+            </div>
           </div>
         </div>
 

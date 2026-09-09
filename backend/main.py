@@ -1,4 +1,4 @@
-from typing import Optional
+from typing import Optional, List
 from fastapi import FastAPI, Depends, HTTPException, Query, UploadFile, File
 from fastapi.middleware.cors import CORSMiddleware
 from sqlalchemy import select
@@ -40,18 +40,18 @@ def create_activity(activity: schemas.ActivityCreate, db: Session = Depends(get_
 
 @app.get("/activities/", response_model=list[schemas.ActivityResponse])
 def read_activities(
-    cost: Optional[str] = Query(None, description="Filter by cost"),
+    cost: Optional[List[str]] = Query(None, description="Filter by multiple costs"),
     location: Optional[str] = Query(None, description="Filter by Indoor or Outdoor"),
     season: Optional[str] = Query(None, description="Filter by season"),
     include_group: Optional[str] = Query(None, description="Filter by group inclusion"),
-    physical_energy: Optional[str] = Query(None, description="Filter by physical energy"),
-    mental_energy: Optional[str] = Query(None, description="Filter by mental energy"),
+    physical_energy: Optional[List[str]] = Query(None, description="Filter by multiple physical energy levels"),
+    mental_energy: Optional[List[str]] = Query(None, description="Filter by multiple mental energy levels"),
     db: Session = Depends(get_db)
 ):
     stmt = select(models.Activity)
 
     if cost:
-        stmt = stmt.where(models.Activity.cost == cost)
+        stmt = stmt.where(models.Activity.cost.in_(cost))
     if location:
         stmt = stmt.where(models.Activity.location == location)
     if season:
@@ -62,9 +62,9 @@ def read_activities(
     if include_group:
         stmt = stmt.where(models.Activity.include_group == include_group)
     if physical_energy:
-        stmt = stmt.where(models.Activity.physical_energy == physical_energy)
+        stmt = stmt.where(models.Activity.physical_energy.in_(physical_energy))
     if mental_energy:
-        stmt = stmt.where(models.Activity.mental_energy == mental_energy)
+        stmt = stmt.where(models.Activity.mental_energy.in_(mental_energy))
 
     result = db.execute(stmt)
     return result.scalars().all()
