@@ -78,6 +78,34 @@ def delete_activity(activity_id: int, db: Session = Depends(get_db)):
     db.commit()
     return {"message": "Activity deleted successfully"}
 
+@app.put("/activities/{activity_id}", response_model=schemas.ActivityResponse)
+def update_activity(activity_id: int, activity: schemas.ActivityCreate, db: Session = Depends(get_db)):
+    db_activity = db.query(models.Activity).filter(models.Activity.id == activity_id).first()
+    if db_activity is None:
+        raise HTTPException(status_code=404, detail="Activity not found")
+    
+    # Dynamically update all the fields in the database row
+    for key, value in activity.model_dump().items():
+        setattr(db_activity, key, value)
+        
+    db.commit()
+    db.refresh(db_activity)
+    return db_activity
+
+@app.put("/activities/{activity_id}", response_model=schemas.ActivityResponse)
+def update_activity(activity_id: int, activity: schemas.ActivityCreate, db: Session = Depends(get_db)):
+    db_activity = db.query(models.Activity).filter(models.Activity.id == activity_id).first()
+    if db_activity is None:
+        raise HTTPException(status_code=404, detail="Activity not found")
+    
+    # Dynamically update all the fields in the database row
+    for key, value in activity.model_dump().items():
+        setattr(db_activity, key, value)
+        
+    db.commit()
+    db.refresh(db_activity)
+    return db_activity
+
 @app.post("/activities/{activity_id}/spin", response_model=schemas.ActivityResponse)
 def spin_activity(activity_id: int, db: Session = Depends(get_db)):
     db_activity = db.query(models.Activity).filter(models.Activity.id == activity_id).first()

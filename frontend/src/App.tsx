@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import axios from 'axios';
-import { Trash2, PlusCircle, Filter } from 'lucide-react';
+import { Trash2, PlusCircle, Filter, Edit2, Check, X } from 'lucide-react';
 import DeciderWheel from './DeciderWheel';
 import ReactSlider from 'react-slider';
 
@@ -32,6 +32,10 @@ function App() {
   const [costRange, setCostRange] = useState<[number, number]>([0, 3]);
   const [physicalRange, setPhysicalRange] = useState<[number, number]>([0, 2]);
   const [mentalRange, setMentalRange] = useState<[number, number]>([0, 2]);
+
+  // Edit Mode State (The Staging Area)
+  const [editingId, setEditingId] = useState<number | null>(null);
+  const [editForm, setEditForm] = useState<any>({});
 
   useEffect(() => {
     loadActivities();
@@ -81,6 +85,24 @@ const loadActivities = async () => {
       loadActivities();
     } catch (error) {
       console.error("Error creating activity:", error);
+    }
+  };
+
+  // Triggers Edit Mode and copies data to staging
+  const startEditing = (activity: Activity) => {
+    setEditingId(activity.id);
+    setEditForm({ ...activity });
+  };
+
+  // Pushes staged data to the backend and exits Edit Mode
+  const handleEditSave = async () => {
+    if (editingId === null) return;
+    try {
+      await axios.put(`http://127.0.0.1:8000/activities/${editingId}`, editForm);
+      setEditingId(null);
+      loadActivities();
+    } catch (error) {
+      console.error("Error updating activity:", error);
     }
   };
 
@@ -238,28 +260,65 @@ const loadActivities = async () => {
         <DeciderWheel activities={activities} />
 
         {/* Activity List */}
-        <div className="space-y-3">
+        <div className="space-y-4">
           {activities.length === 0 ? (
             <p className="text-center text-slate-400 italic py-4">No matching activities found.</p>
           ) : (
             activities.map((activity) => (
-              <div key={activity.id} className="bg-slate-800 p-4 rounded-xl shadow-sm border border-slate-700 flex justify-between items-center">
-                <div>
-                  <h3 className="font-bold text-lg text-slate-100">{activity.name}</h3>
-                  <div className="flex gap-2 text-xs text-slate-400 mt-2">
-                    <span className="bg-slate-700 text-slate-300 px-2 py-1 rounded-full">{activity.location}</span>
-                    <span className="bg-slate-700 text-slate-300 px-2 py-1 rounded-full">{activity.cost}</span>
-                    <span className="bg-slate-700 text-slate-300 px-2 py-1 rounded-full">{activity.duration}m</span>
+              editingId === activity.id ? (
+                /* --- EDIT MODE --- */
+                <div key={activity.id} className="bg-slate-800 p-4 rounded-xl shadow-lg border border-indigo-500 space-y-3">
+                  <input 
+                    className="w-full bg-slate-900 border border-slate-600 rounded-lg px-3 py-2 text-sm text-slate-200 outline-none focus:border-indigo-500" 
+                    value={editForm.name} 
+                    onChange={e => setEditForm({...editForm, name: e.target.value})}
+                  />
+                  <div className="grid grid-cols-2 md:grid-cols-3 gap-2">
+                    <select className="bg-slate-900 border border-slate-600 text-slate-200 rounded-lg px-2 py-1 text-xs outline-none" value={editForm.location} onChange={e => setEditForm({...editForm, location: e.target.value})}>
+                      <option>Indoor</option><option>Outdoor</option>
+                    </select>
+                    <select className="bg-slate-900 border border-slate-600 text-slate-200 rounded-lg px-2 py-1 text-xs outline-none" value={editForm.cost} onChange={e => setEditForm({...editForm, cost: e.target.value})}>
+                      <option>$</option><option>$$</option><option>$$$</option><option>$$$$</option>
+                    </select>
+                    <select className="bg-slate-900 border border-slate-600 text-slate-200 rounded-lg px-2 py-1 text-xs outline-none" value={editForm.season} onChange={e => setEditForm({...editForm, season: e.target.value})}>
+                      <option>Any</option><option>Spring</option><option>Summer</option><option>Fall</option><option>Winter</option>
+                    </select>
+                    <select className="bg-slate-900 border border-slate-600 text-slate-200 rounded-lg px-2 py-1 text-xs outline-none" value={editForm.physical_energy} onChange={e => setEditForm({...editForm, physical_energy: e.target.value})}>
+                      <option>Low</option><option>Med</option><option>High</option>
+                    </select>
+                    <select className="bg-slate-900 border border-slate-600 text-slate-200 rounded-lg px-2 py-1 text-xs outline-none" value={editForm.mental_energy} onChange={e => setEditForm({...editForm, mental_energy: e.target.value})}>
+                      <option>Low</option><option>Med</option><option>High</option>
+                    </select>
+                    <select className="bg-slate-900 border border-slate-600 text-slate-200 rounded-lg px-2 py-1 text-xs outline-none" value={editForm.include_group} onChange={e => setEditForm({...editForm, include_group: e.target.value})}>
+                      <option value="Yes">Group: Yes</option><option value="No">Group: No</option>
+                    </select>
+                  </div>
+                  <div className="flex justify-end gap-2 mt-2">
+                    <button onClick={() => setEditingId(null)} className="p-2 text-slate-400 hover:text-slate-200 bg-slate-700 hover:bg-slate-600 rounded-full transition-colors"><X size={18} /></button>
+                    <button onClick={handleEditSave} className="p-2 text-green-400 hover:text-green-200 bg-green-900/30 hover:bg-green-800/50 rounded-full transition-colors"><Check size={18} /></button>
                   </div>
                 </div>
-                
-                <button 
-                  onClick={() => handleDelete(activity.id)}
-                  className="p-3 text-red-400 hover:text-red-300 hover:bg-red-900/30 rounded-full transition-colors"
-                >
-                  <Trash2 size={20} />
-                </button>
-              </div>
+              ) : (
+                /* --- VIEW MODE --- */
+                <div key={activity.id} className="bg-slate-800 p-4 rounded-xl shadow-sm border border-slate-700 flex flex-col gap-3">
+                  <div className="flex justify-between items-start">
+                    <h3 className="font-bold text-lg text-slate-100">{activity.name}</h3>
+                    <div className="flex gap-1">
+                      <button onClick={() => startEditing(activity)} className="p-2 text-indigo-400 hover:text-indigo-300 hover:bg-indigo-900/30 rounded-full transition-colors"><Edit2 size={18} /></button>
+                      <button onClick={() => handleDelete(activity.id)} className="p-2 text-red-400 hover:text-red-300 hover:bg-red-900/30 rounded-full transition-colors"><Trash2 size={18} /></button>
+                    </div>
+                  </div>
+                  <div className="flex flex-wrap gap-2 text-[11px] font-medium text-slate-400">
+                    <span className="bg-slate-900 border border-slate-700 px-2.5 py-1 rounded-full">📍 {activity.location}</span>
+                    <span className="bg-slate-900 border border-slate-700 px-2.5 py-1 rounded-full">💰 {activity.cost}</span>
+                    <span className="bg-slate-900 border border-slate-700 px-2.5 py-1 rounded-full">⏳ {activity.duration}m</span>
+                    <span className="bg-slate-900 border border-slate-700 px-2.5 py-1 rounded-full">⛅ {activity.season}</span>
+                    <span className="bg-slate-900 border border-slate-700 px-2.5 py-1 rounded-full">👥 {activity.include_group}</span>
+                    <span className="bg-slate-900 border border-slate-700 px-2.5 py-1 rounded-full">⚡ {activity.physical_energy}</span>
+                    <span className="bg-slate-900 border border-slate-700 px-2.5 py-1 rounded-full">🧠 {activity.mental_energy}</span>
+                  </div>
+                </div>
+              )
             ))
           )}
         </div>
