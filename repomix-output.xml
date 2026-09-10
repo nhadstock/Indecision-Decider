@@ -266,68 +266,6 @@ def downgrade() -> None:
     ${downgrades if downgrades else "pass"}
 </file>
 
-<file path="backend/models.py">
-from sqlalchemy import Column, Integer, String, DateTime
-from datetime import datetime, timezone
-from database import Base
-
-class Activity(Base):
-    __tablename__ = "activities"
-
-    id = Column(Integer, primary_key=True, index=True)
-    name = Column(String, index=True)
-    cost = Column(String)        # e.g., "$", "$$", "$$$"
-    location = Column(String)    # e.g., "Indoor", "Outdoor"
-    duration = Column(Integer)   # Duration in minutes
-    season = Column(String)      # e.g., "Any", "Summer", "Winter"
-    include_group = Column(String) # e.g., "Yes", "No"
-    physical_energy = Column(String) # e.g., "Low", "Med", "High"
-    mental_energy = Column(String)   # e.g., "Low", "Med", "High"
-    
-    # Analytics Tracking
-    created_at = Column(DateTime, default=lambda: datetime.now(timezone.utc))
-    spun_count = Column(Integer, default=0)
-    skipped_count = Column(Integer, default=0)
-</file>
-
-<file path="backend/requirements.txt">
-fastapi>=0.110.0
-uvicorn>=0.29.0
-sqlalchemy>=2.0.0
-alembic>=1.13.0
-pydantic>=2.6.0
-python-multipart>=0.0.9
-</file>
-
-<file path="backend/schemas.py">
-from pydantic import BaseModel
-from datetime import datetime
-
-class ActivityBase(BaseModel):
-    name: str
-    cost: str
-    location: str
-    duration: int
-    season: str
-    include_group: str
-    physical_energy: str
-    mental_energy: str
-
-# Used when creating an activity (doesn't need ID or analytics yet)
-class ActivityCreate(ActivityBase):
-    pass
-
-# Used when returning an activity from the API (includes ID and analytics)
-class ActivityResponse(ActivityBase):
-    id: int
-    created_at: datetime
-    spun_count: int
-    skipped_count: int
-
-    class Config:
-        from_attributes = True # Tells Pydantic to read data even if it is not a standard dict
-</file>
-
 <file path="frontend/public/favicon.svg">
 <svg xmlns="http://www.w3.org/2000/svg" width="48" height="46" fill="none" viewBox="0 0 48 46"><path fill="#863bff" d="M25.946 44.938c-.664.845-2.021.375-2.021-.698V33.937a2.26 2.26 0 0 0-2.262-2.262H10.287c-.92 0-1.456-1.04-.92-1.788l7.48-10.471c1.07-1.497 0-3.578-1.842-3.578H1.237c-.92 0-1.456-1.04-.92-1.788L10.013.474c.214-.297.556-.474.92-.474h28.894c.92 0 1.456 1.04.92 1.788l-7.48 10.471c-1.07 1.498 0 3.579 1.842 3.579h11.377c.943 0 1.473 1.088.89 1.83L25.947 44.94z" style="fill:#863bff;fill:color(display-p3 .5252 .23 1);fill-opacity:1"/><mask id="a" width="48" height="46" x="0" y="0" maskUnits="userSpaceOnUse" style="mask-type:alpha"><path fill="#000" d="M25.842 44.938c-.664.844-2.021.375-2.021-.698V33.937a2.26 2.26 0 0 0-2.262-2.262H10.183c-.92 0-1.456-1.04-.92-1.788l7.48-10.471c1.07-1.498 0-3.579-1.842-3.579H1.133c-.92 0-1.456-1.04-.92-1.787L9.91.473c.214-.297.556-.474.92-.474h28.894c.92 0 1.456 1.04.92 1.788l-7.48 10.471c-1.07 1.498 0 3.578 1.842 3.578h11.377c.943 0 1.473 1.088.89 1.832L25.843 44.94z" style="fill:#000;fill-opacity:1"/></mask><g mask="url(#a)"><g filter="url(#b)"><ellipse cx="5.508" cy="14.704" fill="#ede6ff" rx="5.508" ry="14.704" style="fill:#ede6ff;fill:color(display-p3 .9275 .9033 1);fill-opacity:1" transform="matrix(.00324 1 1 -.00324 -4.47 31.516)"/></g><g filter="url(#c)"><ellipse cx="10.399" cy="29.851" fill="#ede6ff" rx="10.399" ry="29.851" style="fill:#ede6ff;fill:color(display-p3 .9275 .9033 1);fill-opacity:1" transform="matrix(.00324 1 1 -.00324 -39.328 7.883)"/></g><g filter="url(#d)"><ellipse cx="5.508" cy="30.487" fill="#7e14ff" rx="5.508" ry="30.487" style="fill:#7e14ff;fill:color(display-p3 .4922 .0767 1);fill-opacity:1" transform="rotate(89.814 -25.913 -14.639)scale(1 -1)"/></g><g filter="url(#e)"><ellipse cx="5.508" cy="30.599" fill="#7e14ff" rx="5.508" ry="30.599" style="fill:#7e14ff;fill:color(display-p3 .4922 .0767 1);fill-opacity:1" transform="rotate(89.814 -32.644 -3.334)scale(1 -1)"/></g><g filter="url(#f)"><ellipse cx="5.508" cy="30.599" fill="#7e14ff" rx="5.508" ry="30.599" style="fill:#7e14ff;fill:color(display-p3 .4922 .0767 1);fill-opacity:1" transform="matrix(.00324 1 1 -.00324 -34.34 30.47)"/></g><g filter="url(#g)"><ellipse cx="14.072" cy="22.078" fill="#ede6ff" rx="14.072" ry="22.078" style="fill:#ede6ff;fill:color(display-p3 .9275 .9033 1);fill-opacity:1" transform="rotate(93.35 24.506 48.493)scale(-1 1)"/></g><g filter="url(#h)"><ellipse cx="3.47" cy="21.501" fill="#7e14ff" rx="3.47" ry="21.501" style="fill:#7e14ff;fill:color(display-p3 .4922 .0767 1);fill-opacity:1" transform="rotate(89.009 28.708 47.59)scale(-1 1)"/></g><g filter="url(#i)"><ellipse cx="3.47" cy="21.501" fill="#7e14ff" rx="3.47" ry="21.501" style="fill:#7e14ff;fill:color(display-p3 .4922 .0767 1);fill-opacity:1" transform="rotate(89.009 28.708 47.59)scale(-1 1)"/></g><g filter="url(#j)"><ellipse cx=".387" cy="8.972" fill="#7e14ff" rx="4.407" ry="29.108" style="fill:#7e14ff;fill:color(display-p3 .4922 .0767 1);fill-opacity:1" transform="rotate(39.51 .387 8.972)"/></g><g filter="url(#k)"><ellipse cx="47.523" cy="-6.092" fill="#7e14ff" rx="4.407" ry="29.108" style="fill:#7e14ff;fill:color(display-p3 .4922 .0767 1);fill-opacity:1" transform="rotate(37.892 47.523 -6.092)"/></g><g filter="url(#l)"><ellipse cx="41.412" cy="6.333" fill="#47bfff" rx="5.971" ry="9.665" style="fill:#47bfff;fill:color(display-p3 .2799 .748 1);fill-opacity:1" transform="rotate(37.892 41.412 6.333)"/></g><g filter="url(#m)"><ellipse cx="-1.879" cy="38.332" fill="#7e14ff" rx="4.407" ry="29.108" style="fill:#7e14ff;fill:color(display-p3 .4922 .0767 1);fill-opacity:1" transform="rotate(37.892 -1.88 38.332)"/></g><g filter="url(#n)"><ellipse cx="-1.879" cy="38.332" fill="#7e14ff" rx="4.407" ry="29.108" style="fill:#7e14ff;fill:color(display-p3 .4922 .0767 1);fill-opacity:1" transform="rotate(37.892 -1.88 38.332)"/></g><g filter="url(#o)"><ellipse cx="35.651" cy="29.907" fill="#7e14ff" rx="4.407" ry="29.108" style="fill:#7e14ff;fill:color(display-p3 .4922 .0767 1);fill-opacity:1" transform="rotate(37.892 35.651 29.907)"/></g><g filter="url(#p)"><ellipse cx="38.418" cy="32.4" fill="#47bfff" rx="5.971" ry="15.297" style="fill:#47bfff;fill:color(display-p3 .2799 .748 1);fill-opacity:1" transform="rotate(37.892 38.418 32.4)"/></g></g><defs><filter id="b" width="60.045" height="41.654" x="-19.77" y="16.149" color-interpolation-filters="sRGB" filterUnits="userSpaceOnUse"><feFlood flood-opacity="0" result="BackgroundImageFix"/><feBlend in="SourceGraphic" in2="BackgroundImageFix" result="shape"/><feGaussianBlur result="effect1_foregroundBlur_2002_17158" stdDeviation="7.659"/></filter><filter id="c" width="90.34" height="51.437" x="-54.613" y="-7.533" color-interpolation-filters="sRGB" filterUnits="userSpaceOnUse"><feFlood flood-opacity="0" result="BackgroundImageFix"/><feBlend in="SourceGraphic" in2="BackgroundImageFix" result="shape"/><feGaussianBlur result="effect1_foregroundBlur_2002_17158" stdDeviation="7.659"/></filter><filter id="d" width="79.355" height="29.4" x="-49.64" y="2.03" color-interpolation-filters="sRGB" filterUnits="userSpaceOnUse"><feFlood flood-opacity="0" result="BackgroundImageFix"/><feBlend in="SourceGraphic" in2="BackgroundImageFix" result="shape"/><feGaussianBlur result="effect1_foregroundBlur_2002_17158" stdDeviation="4.596"/></filter><filter id="e" width="79.579" height="29.4" x="-45.045" y="20.029" color-interpolation-filters="sRGB" filterUnits="userSpaceOnUse"><feFlood flood-opacity="0" result="BackgroundImageFix"/><feBlend in="SourceGraphic" in2="BackgroundImageFix" result="shape"/><feGaussianBlur result="effect1_foregroundBlur_2002_17158" stdDeviation="4.596"/></filter><filter id="f" width="79.579" height="29.4" x="-43.513" y="21.178" color-interpolation-filters="sRGB" filterUnits="userSpaceOnUse"><feFlood flood-opacity="0" result="BackgroundImageFix"/><feBlend in="SourceGraphic" in2="BackgroundImageFix" result="shape"/><feGaussianBlur result="effect1_foregroundBlur_2002_17158" stdDeviation="4.596"/></filter><filter id="g" width="74.749" height="58.852" x="15.756" y="-17.901" color-interpolation-filters="sRGB" filterUnits="userSpaceOnUse"><feFlood flood-opacity="0" result="BackgroundImageFix"/><feBlend in="SourceGraphic" in2="BackgroundImageFix" result="shape"/><feGaussianBlur result="effect1_foregroundBlur_2002_17158" stdDeviation="7.659"/></filter><filter id="h" width="61.377" height="25.362" x="23.548" y="2.284" color-interpolation-filters="sRGB" filterUnits="userSpaceOnUse"><feFlood flood-opacity="0" result="BackgroundImageFix"/><feBlend in="SourceGraphic" in2="BackgroundImageFix" result="shape"/><feGaussianBlur result="effect1_foregroundBlur_2002_17158" stdDeviation="4.596"/></filter><filter id="i" width="61.377" height="25.362" x="23.548" y="2.284" color-interpolation-filters="sRGB" filterUnits="userSpaceOnUse"><feFlood flood-opacity="0" result="BackgroundImageFix"/><feBlend in="SourceGraphic" in2="BackgroundImageFix" result="shape"/><feGaussianBlur result="effect1_foregroundBlur_2002_17158" stdDeviation="4.596"/></filter><filter id="j" width="56.045" height="63.649" x="-27.636" y="-22.853" color-interpolation-filters="sRGB" filterUnits="userSpaceOnUse"><feFlood flood-opacity="0" result="BackgroundImageFix"/><feBlend in="SourceGraphic" in2="BackgroundImageFix" result="shape"/><feGaussianBlur result="effect1_foregroundBlur_2002_17158" stdDeviation="4.596"/></filter><filter id="k" width="54.814" height="64.646" x="20.116" y="-38.415" color-interpolation-filters="sRGB" filterUnits="userSpaceOnUse"><feFlood flood-opacity="0" result="BackgroundImageFix"/><feBlend in="SourceGraphic" in2="BackgroundImageFix" result="shape"/><feGaussianBlur result="effect1_foregroundBlur_2002_17158" stdDeviation="4.596"/></filter><filter id="l" width="33.541" height="35.313" x="24.641" y="-11.323" color-interpolation-filters="sRGB" filterUnits="userSpaceOnUse"><feFlood flood-opacity="0" result="BackgroundImageFix"/><feBlend in="SourceGraphic" in2="BackgroundImageFix" result="shape"/><feGaussianBlur result="effect1_foregroundBlur_2002_17158" stdDeviation="4.596"/></filter><filter id="m" width="54.814" height="64.646" x="-29.286" y="6.009" color-interpolation-filters="sRGB" filterUnits="userSpaceOnUse"><feFlood flood-opacity="0" result="BackgroundImageFix"/><feBlend in="SourceGraphic" in2="BackgroundImageFix" result="shape"/><feGaussianBlur result="effect1_foregroundBlur_2002_17158" stdDeviation="4.596"/></filter><filter id="n" width="54.814" height="64.646" x="-29.286" y="6.009" color-interpolation-filters="sRGB" filterUnits="userSpaceOnUse"><feFlood flood-opacity="0" result="BackgroundImageFix"/><feBlend in="SourceGraphic" in2="BackgroundImageFix" result="shape"/><feGaussianBlur result="effect1_foregroundBlur_2002_17158" stdDeviation="4.596"/></filter><filter id="o" width="54.814" height="64.646" x="8.244" y="-2.416" color-interpolation-filters="sRGB" filterUnits="userSpaceOnUse"><feFlood flood-opacity="0" result="BackgroundImageFix"/><feBlend in="SourceGraphic" in2="BackgroundImageFix" result="shape"/><feGaussianBlur result="effect1_foregroundBlur_2002_17158" stdDeviation="4.596"/></filter><filter id="p" width="39.409" height="43.623" x="18.713" y="10.588" color-interpolation-filters="sRGB" filterUnits="userSpaceOnUse"><feFlood flood-opacity="0" result="BackgroundImageFix"/><feBlend in="SourceGraphic" in2="BackgroundImageFix" result="shape"/><feGaussianBlur result="effect1_foregroundBlur_2002_17158" stdDeviation="4.596"/></filter></defs></svg>
 </file>
@@ -454,57 +392,6 @@ function App() {
 }
 
 export default App;
-</file>
-
-<file path="frontend/src/DeciderWheel.tsx">
-import { useState } from 'react';
-import { Wheel } from 'react-custom-roulette';
-
-// Tell TypeScript what an Activity looks like here too
-interface Activity {
-  id: number;
-  name: string;
-}
-
-interface DeciderWheelProps {
-  activities: Activity[];
-}
-
-export default function DeciderWheel({ activities }: DeciderWheelProps) {
-  const [mustSpin, setMustSpin] = useState(false);
-  const [prizeNumber, setPrizeNumber] = useState(0);
-
-  const wheelData = activities.map(act => ({ option: act.name }));
-
-  const handleSpinClick = () => {
-    if (wheelData.length === 0) return;
-    const newPrizeNumber = Math.floor(Math.random() * wheelData.length);
-    setPrizeNumber(newPrizeNumber);
-    setMustSpin(true);
-  };
-
-  if (wheelData.length === 0) return <p className="text-center text-slate-400 my-4">Add some activities to spin!</p>;
-
-  return (
-    <div className="flex flex-col items-center my-8">
-      <Wheel
-        mustStartSpinning={mustSpin}
-        prizeNumber={prizeNumber}
-        data={wheelData}
-        onStopSpinning={() => {
-          setMustSpin(false);
-          alert(`Winner: ${wheelData[prizeNumber].option}!`);
-        }}
-      />
-      <button 
-        onClick={handleSpinClick}
-        className="mt-4 px-6 py-2 bg-indigo-600 text-white rounded-full font-bold shadow-lg hover:bg-indigo-700 transition-colors"
-      >
-        SPIN THE WHEEL
-      </button>
-    </div>
-  );
-}
 </file>
 
 <file path="frontend/src/index.css">
@@ -1016,43 +903,127 @@ SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 Base = declarative_base()
 </file>
 
-<file path="frontend/package.json">
-{
-  "name": "frontend",
-  "private": true,
-  "version": "0.0.0",
-  "type": "module",
-  "scripts": {
-    "dev": "vite",
-    "build": "tsc -b && vite build",
-    "lint": "eslint .",
-    "preview": "vite preview"
-  },
-  "dependencies": {
-    "axios": "^1.20.0",
-    "lucide-react": "^1.41.0",
-    "react": "^19.2.8",
-    "react-custom-roulette": "^1.4.1",
-    "react-dom": "^19.2.8"
-  },
-  "devDependencies": {
-    "@eslint/js": "^10.0.1",
-    "@tailwindcss/postcss": "^4.3.3",
-    "@types/node": "^24.13.3",
-    "@types/react": "^19.2.18",
-    "@types/react-dom": "^19.2.4",
-    "@vitejs/plugin-react": "^6.1.0",
-    "autoprefixer": "^10.5.5",
-    "eslint": "^10.9.0",
-    "eslint-plugin-react-hooks": "^7.1.1",
-    "eslint-plugin-react-refresh": "^0.5.4",
-    "globals": "^17.11.0",
-    "postcss": "^8.5.28",
-    "tailwindcss": "^4.3.3",
-    "typescript": "~6.0.2",
-    "typescript-eslint": "^8.67.0",
-    "vite": "^8.2.2"
-  }
+<file path="backend/models.py">
+from sqlalchemy import Column, Integer, String, DateTime
+from datetime import datetime, timezone
+from database import Base
+
+class Activity(Base):
+    __tablename__ = "activities"
+
+    id = Column(Integer, primary_key=True, index=True)
+    name = Column(String, index=True)
+    cost = Column(String)        # e.g., "$", "$$", "$$$"
+    location = Column(String)    # e.g., "Indoor", "Outdoor"
+    duration = Column(Integer)   # Duration in minutes
+    season = Column(String)      # e.g., "Any", "Summer", "Winter"
+    include_group = Column(String) # e.g., "Yes", "No"
+    physical_energy = Column(String) # e.g., "Low", "Med", "High"
+    mental_energy = Column(String)   # e.g., "Low", "Med", "High"
+    
+    # Analytics Tracking
+    created_at = Column(DateTime, default=lambda: datetime.now(timezone.utc))
+    spun_count = Column(Integer, default=0)
+    skipped_count = Column(Integer, default=0)
+</file>
+
+<file path="backend/requirements.txt">
+fastapi>=0.110.0
+uvicorn>=0.29.0
+sqlalchemy>=2.0.0
+alembic>=1.13.0
+pydantic>=2.6.0
+python-multipart>=0.0.9
+</file>
+
+<file path="backend/schemas.py">
+from pydantic import BaseModel
+from datetime import datetime
+
+class ActivityBase(BaseModel):
+    name: str
+    cost: str
+    location: str
+    duration: int
+    season: str
+    include_group: str
+    physical_energy: str
+    mental_energy: str
+
+# Used when creating an activity (doesn't need ID or analytics yet)
+class ActivityCreate(ActivityBase):
+    pass
+
+# Used when returning an activity from the API (includes ID and analytics)
+class ActivityResponse(ActivityBase):
+    id: int
+    created_at: datetime
+    spun_count: int
+    skipped_count: int
+
+    class Config:
+        from_attributes = True # Tells Pydantic to read data even if it is not a standard dict
+</file>
+
+<file path="frontend/src/DeciderWheel.tsx">
+import { useState } from 'react';
+import { Wheel } from 'react-custom-roulette';
+
+// Tell TypeScript what an Activity looks like here too
+interface Activity {
+  id: number;
+  name: string;
+}
+
+interface DeciderWheelProps {
+  activities: Activity[];
+}
+
+export default function DeciderWheel({ activities }: DeciderWheelProps) {
+  const [mustSpin, setMustSpin] = useState(false);
+  const [prizeNumber, setPrizeNumber] = useState(0);
+
+  const wheelData = activities.map(act => ({ option: act.name }));
+
+  const handleSpinClick = () => {
+    if (wheelData.length === 0) return;
+    const newPrizeNumber = Math.floor(Math.random() * wheelData.length);
+    setPrizeNumber(newPrizeNumber);
+    setMustSpin(true);
+  };
+
+  if (wheelData.length === 0) return <p className="text-center text-slate-400 my-4">Add some activities to spin!</p>;
+
+  return (
+    <div className="flex flex-col items-center my-8 w-full">
+      <div className="w-[400px] h-[400px] flex justify-center items-center">
+        <Wheel
+          mustStartSpinning={mustSpin}
+          prizeNumber={prizeNumber}
+          data={wheelData}
+          backgroundColors={['#1e293b', '#334155', '#4f46e5', '#312e81']}
+          textColors={['#ffffff']}
+          outerBorderColor="#0f172a"
+          outerBorderWidth={5}
+          innerBorderColor="#0f172a"
+          innerBorderWidth={2}
+          radiusLineColor="#0f172a"
+          radiusLineWidth={2}
+          fontSize={14}
+          onStopSpinning={() => {
+            setMustSpin(false);
+            alert(`Winner: ${wheelData[prizeNumber].option}!`);
+          }}
+        />
+      </div>
+      <button 
+        onClick={handleSpinClick}
+        className="mt-6 px-8 py-3 bg-indigo-600 text-white rounded-full font-bold shadow-lg shadow-indigo-600/30 hover:bg-indigo-500 transition-colors tracking-wide"
+      >
+        SPIN THE WHEEL
+      </button>
+    </div>
+  );
 }
 </file>
 
@@ -1072,8 +1043,51 @@ echo "Starting React Frontend..."
 wait
 </file>
 
+<file path="frontend/package.json">
+{
+  "name": "frontend",
+  "private": true,
+  "version": "0.0.0",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "tsc -b && vite build",
+    "lint": "eslint .",
+    "preview": "vite preview"
+  },
+  "dependencies": {
+    "@babel/runtime": "^8.0.0",
+    "axios": "^1.20.0",
+    "lucide-react": "^1.41.0",
+    "react": "^19.2.8",
+    "react-custom-roulette": "^1.4.1",
+    "react-dom": "^19.2.8",
+    "react-slider": "^2.0.6"
+  },
+  "devDependencies": {
+    "@eslint/js": "^10.0.1",
+    "@tailwindcss/postcss": "^4.3.3",
+    "@types/node": "^24.13.3",
+    "@types/react": "^19.2.18",
+    "@types/react-dom": "^19.2.4",
+    "@types/react-slider": "^1.3.6",
+    "@vitejs/plugin-react": "^6.1.0",
+    "autoprefixer": "^10.5.5",
+    "eslint": "^10.9.0",
+    "eslint-plugin-react-hooks": "^7.1.1",
+    "eslint-plugin-react-refresh": "^0.5.4",
+    "globals": "^17.11.0",
+    "postcss": "^8.5.28",
+    "tailwindcss": "^4.3.3",
+    "typescript": "~6.0.2",
+    "typescript-eslint": "^8.67.0",
+    "vite": "^8.2.2"
+  }
+}
+</file>
+
 <file path="backend/main.py">
-from typing import Optional
+from typing import Optional, List
 from fastapi import FastAPI, Depends, HTTPException, Query, UploadFile, File
 from fastapi.middleware.cors import CORSMiddleware
 from sqlalchemy import select
@@ -1115,18 +1129,18 @@ def create_activity(activity: schemas.ActivityCreate, db: Session = Depends(get_
 
 @app.get("/activities/", response_model=list[schemas.ActivityResponse])
 def read_activities(
-    cost: Optional[str] = Query(None, description="Filter by cost"),
+    cost: Optional[List[str]] = Query(None, description="Filter by multiple costs"),
     location: Optional[str] = Query(None, description="Filter by Indoor or Outdoor"),
     season: Optional[str] = Query(None, description="Filter by season"),
     include_group: Optional[str] = Query(None, description="Filter by group inclusion"),
-    physical_energy: Optional[str] = Query(None, description="Filter by physical energy"),
-    mental_energy: Optional[str] = Query(None, description="Filter by mental energy"),
+    physical_energy: Optional[List[str]] = Query(None, description="Filter by multiple physical energy levels"),
+    mental_energy: Optional[List[str]] = Query(None, description="Filter by multiple mental energy levels"),
     db: Session = Depends(get_db)
 ):
     stmt = select(models.Activity)
 
     if cost:
-        stmt = stmt.where(models.Activity.cost == cost)
+        stmt = stmt.where(models.Activity.cost.in_(cost))
     if location:
         stmt = stmt.where(models.Activity.location == location)
     if season:
@@ -1137,9 +1151,9 @@ def read_activities(
     if include_group:
         stmt = stmt.where(models.Activity.include_group == include_group)
     if physical_energy:
-        stmt = stmt.where(models.Activity.physical_energy == physical_energy)
+        stmt = stmt.where(models.Activity.physical_energy.in_(physical_energy))
     if mental_energy:
-        stmt = stmt.where(models.Activity.mental_energy == mental_energy)
+        stmt = stmt.where(models.Activity.mental_energy.in_(mental_energy))
 
     result = db.execute(stmt)
     return result.scalars().all()
@@ -1152,6 +1166,34 @@ def delete_activity(activity_id: int, db: Session = Depends(get_db)):
     db.delete(db_activity)
     db.commit()
     return {"message": "Activity deleted successfully"}
+
+@app.put("/activities/{activity_id}", response_model=schemas.ActivityResponse)
+def update_activity(activity_id: int, activity: schemas.ActivityCreate, db: Session = Depends(get_db)):
+    db_activity = db.query(models.Activity).filter(models.Activity.id == activity_id).first()
+    if db_activity is None:
+        raise HTTPException(status_code=404, detail="Activity not found")
+    
+    # Dynamically update all the fields in the database row
+    for key, value in activity.model_dump().items():
+        setattr(db_activity, key, value)
+        
+    db.commit()
+    db.refresh(db_activity)
+    return db_activity
+
+@app.put("/activities/{activity_id}", response_model=schemas.ActivityResponse)
+def update_activity(activity_id: int, activity: schemas.ActivityCreate, db: Session = Depends(get_db)):
+    db_activity = db.query(models.Activity).filter(models.Activity.id == activity_id).first()
+    if db_activity is None:
+        raise HTTPException(status_code=404, detail="Activity not found")
+    
+    # Dynamically update all the fields in the database row
+    for key, value in activity.model_dump().items():
+        setattr(db_activity, key, value)
+        
+    db.commit()
+    db.refresh(db_activity)
+    return db_activity
 
 @app.post("/activities/{activity_id}/spin", response_model=schemas.ActivityResponse)
 def spin_activity(activity_id: int, db: Session = Depends(get_db)):
@@ -1215,8 +1257,9 @@ if os.path.exists(ui_dir):
 <file path="frontend/src/App.tsx">
 import { useEffect, useState } from 'react';
 import axios from 'axios';
-import { Trash2, PlusCircle, Filter } from 'lucide-react';
+import { Trash2, PlusCircle, Filter, Edit2, Check, X } from 'lucide-react';
 import DeciderWheel from './DeciderWheel';
+import ReactSlider from 'react-slider';
 
 interface Activity {
   id: number;
@@ -1239,21 +1282,47 @@ function App() {
   
   // Filter States
   const [filterLocation, setFilterLocation] = useState<string>('');
-  const [filterCost, setFilterCost] = useState<string>('');
+  const [filterSeason, setFilterSeason] = useState<string>('');
+  const [filterGroup, setFilterGroup] = useState<string>('');
+  
+  // Numerical ranges: Cost [0-3], Energy [0-2]
+  const [costRange, setCostRange] = useState<[number, number]>([0, 3]);
+  const [physicalRange, setPhysicalRange] = useState<[number, number]>([0, 2]);
+  const [mentalRange, setMentalRange] = useState<[number, number]>([0, 2]);
+
+  // Edit Mode State (The Staging Area)
+  const [editingId, setEditingId] = useState<number | null>(null);
+  const [editForm, setEditForm] = useState<any>({});
+  const [isCreateModalOpen, setIsCreateModalOpen] = useState<boolean>(false);
+  
+  // Tab Navigation State
+  const [activeTab, setActiveTab] = useState<'manage' | 'spin'>('manage');
 
   useEffect(() => {
     loadActivities();
-  }, [filterLocation, filterCost]); // Reloads list automatically whenever filters change
+  }, [filterLocation, filterSeason, filterGroup, costRange, physicalRange, mentalRange]);
 
 const loadActivities = async () => {
     try {
       // Build dynamic query parameters object for Axios
       const params: any = {};
       if (filterLocation) params.location = filterLocation;
-      if (filterCost) params.cost = filterCost;
+      if (filterSeason) params.season = filterSeason;
+      if (filterGroup) params.include_group = filterGroup;
+      
+      // Map numerical slider values back to string arrays for the backend
+      const costLabels = ['$', '$$', '$$$', '$$$$'];
+      params.cost = costLabels.slice(costRange[0], costRange[1] + 1);
+      
+      const energyLabels = ['Low', 'Med', 'High'];
+      params.physical_energy = energyLabels.slice(physicalRange[0], physicalRange[1] + 1);
+      params.mental_energy = energyLabels.slice(mentalRange[0], mentalRange[1] + 1);
 
-      // URL changed to relative path
-      const response = await axios.get('/activities/', { params });
+      // Tell Axios to serialize the arrays without brackets for FastAPI
+      const response = await axios.get('http://127.0.0.1:8000/activities/', { 
+        params,
+        paramsSerializer: { indexes: null }
+      });
       setActivities(response.data);
     } catch (error) {
       console.error("Error fetching activities:", error);
@@ -1262,8 +1331,7 @@ const loadActivities = async () => {
 
   const handleDelete = async (id: number) => {
     try {
-      // URL changed to relative path
-      await axios.delete(`/activities/${id}`);
+      await axios.delete(`http://127.0.0.1:8000/activities/${id}`);
       loadActivities();
     } catch (error) {
       console.error("Error deleting activity:", error);
@@ -1272,100 +1340,345 @@ const loadActivities = async () => {
 
   const handleCreate = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (!newActivity.name.trim()) return;
     try {
-      // URL changed to relative path
-      await axios.post('/activities/', newActivity);
+      await axios.post('http://127.0.0.1:8000/activities/', newActivity);
       setNewActivity({ name: '', cost: '$', location: 'Indoor', duration: 60, season: 'Any', include_group: 'No', physical_energy: 'Low', mental_energy: 'Low' });
+      setIsCreateModalOpen(false); // Close the modal upon success
       loadActivities();
     } catch (error) {
       console.error("Error creating activity:", error);
     }
   };
 
+  // Triggers Edit Mode and copies data to staging
+  const startEditing = (activity: Activity) => {
+    setEditingId(activity.id);
+    setEditForm({ ...activity });
+  };
+
+  // Pushes staged data to the backend and exits Edit Mode
+  const handleEditSave = async () => {
+    if (editingId === null) return;
+    try {
+      await axios.put(`http://127.0.0.1:8000/activities/${editingId}`, editForm);
+      setEditingId(null);
+      loadActivities();
+    } catch (error) {
+      console.error("Error updating activity:", error);
+    }
+  };
+
   return (
-    <div className="min-h-screen bg-slate-50 p-4 font-sans text-slate-800">
+    <div className="min-h-screen bg-slate-900 p-4 font-sans text-slate-200">
       <div className="max-w-md mx-auto space-y-6">
         
         <header className="text-center pt-8 pb-4">
-          <h1 className="text-3xl font-extrabold text-indigo-600">Activity Decider</h1>
-          <p className="text-slate-500 text-sm mt-1">What are we doing today?</p>
+          <h1 className="text-3xl font-extrabold text-indigo-400">Activity Decider</h1>
+          <p className="text-slate-400 text-sm mt-1">What are we doing today?</p>
         </header>
 
-        {/* Creation Form */}
-        <form onSubmit={handleCreate} className="bg-white p-4 rounded-xl shadow-sm border border-slate-100 flex gap-2">
-          <input 
-            type="text" 
-            placeholder="e.g., Board Game Night" 
-            required
-            className="flex-1 bg-slate-50 border border-slate-200 rounded-lg px-3 py-2 text-sm outline-none focus:border-indigo-500"
-            value={newActivity.name}
-            onChange={(e) => setNewActivity({...newActivity, name: e.target.value})}
-          />
-          <button type="submit" className="bg-indigo-600 text-white p-2 rounded-lg hover:bg-indigo-700 transition-colors">
-            <PlusCircle size={20} />
+        {/* Tab Navigation */}
+        <div className="flex bg-slate-800 p-1 rounded-xl shadow-lg border border-slate-700 mb-6">
+          <button
+            onClick={() => setActiveTab('manage')}
+            className={`flex-1 py-2.5 text-sm font-bold rounded-lg transition-all ${activeTab === 'manage' ? 'bg-indigo-600 text-white shadow-md shadow-indigo-500/20' : 'text-slate-400 hover:text-slate-200'}`}
+          >
+            📋 Filter & Manage
           </button>
-        </form>
-
-        {/* Filter Bar */}
-        <div className="bg-white p-4 rounded-xl shadow-sm border border-slate-100 space-y-3">
-          <div className="flex items-center gap-2 text-xs font-bold text-slate-400 uppercase tracking-wider">
-            <Filter size={14} /> Filters
-          </div>
-          <div className="flex gap-2">
-            <select 
-              className="flex-1 bg-slate-50 border border-slate-200 rounded-lg px-3 py-2 text-sm outline-none"
-              value={filterLocation}
-              onChange={(e) => setFilterLocation(e.target.value)}
-            >
-              <option value="">All Locations</option>
-              <option value="Indoor">Indoor</option>
-              <option value="outdoor">Outdoor</option>
-            </select>
-
-            <select 
-              className="flex-1 bg-slate-50 border border-slate-200 rounded-lg px-3 py-2 text-sm outline-none"
-              value={filterCost}
-              onChange={(e) => setFilterCost(e.target.value)}
-            >
-              <option value="">All Costs</option>
-              <option value="$">$ (Free/Cheap)</option>
-              <option value="$$">$$ (Moderate)</option>
-              <option value="$$$">$$$ (Splurge)</option>
-            </select>
-          </div>
+          <button
+            onClick={() => setActiveTab('spin')}
+            className={`flex-1 py-2.5 text-sm font-bold rounded-lg transition-all ${activeTab === 'spin' ? 'bg-indigo-600 text-white shadow-md shadow-indigo-500/20' : 'text-slate-400 hover:text-slate-200'}`}
+          >
+            🎡 Tie-Breaker
+          </button>
         </div>
 
-        {/* The Decider Wheel */}
-        <DeciderWheel activities={activities} />
-
-        {/* Activity List */}
-        <div className="space-y-3">
-          {activities.length === 0 ? (
-            <p className="text-center text-slate-400 italic py-4">No matching activities found.</p>
-          ) : (
-            activities.map((activity) => (
-              <div key={activity.id} className="bg-white p-4 rounded-xl shadow-sm border border-slate-100 flex justify-between items-center">
-                <div>
-                  <h3 className="font-bold text-lg">{activity.name}</h3>
-                  <div className="flex gap-2 text-xs text-slate-500 mt-2">
-                    <span className="bg-slate-100 px-2 py-1 rounded-full">{activity.location}</span>
-                    <span className="bg-slate-100 px-2 py-1 rounded-full">{activity.cost}</span>
-                    <span className="bg-slate-100 px-2 py-1 rounded-full">{activity.duration}m</span>
+        {/* --- FILTER & MANAGE TAB --- */}
+        {activeTab === 'manage' && (
+          <div className="space-y-6 animate-in fade-in duration-300">
+            
+            {/* Filter Bar (Moved Here!) */}
+            <div className="bg-slate-800 p-4 rounded-xl shadow-lg border border-slate-700 space-y-5">
+              <div className="flex items-center gap-2 text-xs font-bold text-slate-400 uppercase tracking-wider border-b border-slate-700 pb-2">
+                <Filter size={14} /> Filters
+              </div>
+              
+              <div className="space-y-6">
+                
+                {/* Location & Season Row */}
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <span className="text-[10px] font-bold text-slate-500 uppercase tracking-widest">📍 Location</span>
+                    <div className="flex flex-wrap gap-2">
+                      {['Indoor', 'Outdoor'].map(loc => (
+                        <button key={loc} onClick={() => setFilterLocation(filterLocation === loc ? '' : loc)}
+                          className={`px-3 py-1 text-xs font-medium rounded-full border transition-all ${filterLocation === loc ? 'bg-indigo-600 border-indigo-400 text-white shadow-[0_0_12px_rgba(79,70,229,0.7)]' : 'bg-slate-900 border-slate-700 text-slate-400 hover:border-slate-500'}`}>
+                          {loc}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                  <div className="space-y-2">
+                    <span className="text-[10px] font-bold text-slate-500 uppercase tracking-widest">⛅ Season</span>
+                    <div className="flex flex-wrap gap-2">
+                      {['Spring', 'Summer', 'Fall', 'Winter'].map(s => (
+                        <button key={s} onClick={() => setFilterSeason(filterSeason === s ? '' : s)}
+                          className={`px-3 py-1 text-xs font-medium rounded-full border transition-all ${filterSeason === s ? 'bg-indigo-600 border-indigo-400 text-white shadow-[0_0_12px_rgba(79,70,229,0.7)]' : 'bg-slate-900 border-slate-700 text-slate-400 hover:border-slate-500'}`}>
+                          {s}
+                        </button>
+                      ))}
+                    </div>
                   </div>
                 </div>
-                
-                <button 
-                  onClick={() => handleDelete(activity.id)}
-                  className="p-2 text-red-400 hover:text-red-600 hover:bg-red-50 rounded-full transition-colors"
-                >
-                  <Trash2 size={20} />
-                </button>
+
+                {/* Group Toggle */}
+                <div className="space-y-2">
+                    <span className="text-[10px] font-bold text-slate-500 uppercase tracking-widest">👥 Include Group?</span>
+                    <div className="flex flex-wrap gap-2">
+                      {['Yes', 'No'].map(g => (
+                        <button key={g} onClick={() => setFilterGroup(filterGroup === g ? '' : g)}
+                          className={`px-3 py-1 text-xs font-medium rounded-full border transition-all ${filterGroup === g ? 'bg-indigo-600 border-indigo-400 text-white shadow-[0_0_12px_rgba(79,70,229,0.7)]' : 'bg-slate-900 border-slate-700 text-slate-400 hover:border-slate-500'}`}>
+                          {g}
+                        </button>
+                      ))}
+                    </div>
+                </div>
+
+                {/* The Sliders Row */}
+                <div className="grid grid-cols-1 gap-8 pt-5 border-t border-slate-700">
+                  
+                  {/* Cost Range Slider */}
+                  <div className="space-y-4">
+                    <div className="flex justify-between items-center">
+                        <span className="text-[10px] font-bold text-slate-500 uppercase tracking-widest">💰 Cost Range</span>
+                        <span className="text-xs font-bold text-indigo-400 drop-shadow-[0_0_5px_rgba(99,102,241,0.8)]">
+                          {['$', '$$', '$$$', '$$$$'][costRange[0]]} - {['$', '$$', '$$$', '$$$$'][costRange[1]]}
+                        </span>
+                    </div>
+                    <div className="px-2">
+                      <ReactSlider
+                        className="w-full h-2 flex items-center"
+                        thumbClassName="w-5 h-5 bg-slate-200 border-2 border-indigo-500 rounded-full cursor-pointer shadow-[0_0_10px_rgba(99,102,241,0.8)] outline-none -mt-1.5"
+                        trackClassName="h-2 rounded-full"
+                        renderTrack={(props, state) => <div {...props} className={`${props.className} ${state.index === 1 ? 'bg-indigo-500 shadow-[0_0_8px_rgba(99,102,241,0.6)]' : 'bg-slate-900'}`} />}
+                        min={0} max={3} step={1}
+                        value={costRange}
+                        onChange={(val) => setCostRange(val as [number, number])}
+                      />
+                    </div>
+                    <div className="flex justify-between text-[10px] text-slate-600 font-bold">
+                      <span>$</span><span>$$</span><span>$$$</span><span>$$$$</span>
+                    </div>
+                  </div>
+
+                  {/* Physical Energy Slider */}
+                  <div className="space-y-4">
+                    <div className="flex justify-between items-center">
+                        <span className="text-[10px] font-bold text-slate-500 uppercase tracking-widest">⚡ Physical Energy</span>
+                        <span className="text-xs font-bold text-indigo-400 drop-shadow-[0_0_5px_rgba(99,102,241,0.8)]">
+                          {['Low', 'Med', 'High'][physicalRange[0]]} - {['Low', 'Med', 'High'][physicalRange[1]]}
+                        </span>
+                    </div>
+                    <div className="px-2">
+                      <ReactSlider
+                        className="w-full h-2 flex items-center"
+                        thumbClassName="w-5 h-5 bg-slate-200 border-2 border-indigo-500 rounded-full cursor-pointer shadow-[0_0_10px_rgba(99,102,241,0.8)] outline-none -mt-1.5"
+                        trackClassName="h-2 rounded-full"
+                        renderTrack={(props, state) => <div {...props} className={`${props.className} ${state.index === 1 ? 'bg-indigo-500 shadow-[0_0_8px_rgba(99,102,241,0.6)]' : 'bg-slate-900'}`} />}
+                        min={0} max={2} step={1}
+                        value={physicalRange}
+                        onChange={(val) => setPhysicalRange(val as [number, number])}
+                      />
+                    </div>
+                    <div className="flex justify-between text-[10px] text-slate-600 font-bold">
+                      <span>Low</span><span>Med</span><span>High</span>
+                    </div>
+                  </div>
+
+                  {/* Mental Energy Slider */}
+                  <div className="space-y-4">
+                    <div className="flex justify-between items-center">
+                        <span className="text-[10px] font-bold text-slate-500 uppercase tracking-widest">🧠 Mental Energy</span>
+                        <span className="text-xs font-bold text-indigo-400 drop-shadow-[0_0_5px_rgba(99,102,241,0.8)]">
+                          {['Low', 'Med', 'High'][mentalRange[0]]} - {['Low', 'Med', 'High'][mentalRange[1]]}
+                        </span>
+                    </div>
+                    <div className="px-2">
+                      <ReactSlider
+                        className="w-full h-2 flex items-center"
+                        thumbClassName="w-5 h-5 bg-slate-200 border-2 border-indigo-500 rounded-full cursor-pointer shadow-[0_0_10px_rgba(99,102,241,0.8)] outline-none -mt-1.5"
+                        trackClassName="h-2 rounded-full"
+                        renderTrack={(props, state) => <div {...props} className={`${props.className} ${state.index === 1 ? 'bg-indigo-500 shadow-[0_0_8px_rgba(99,102,241,0.6)]' : 'bg-slate-900'}`} />}
+                        min={0} max={2} step={1}
+                        value={mentalRange}
+                        onChange={(val) => setMentalRange(val as [number, number])}
+                      />
+                    </div>
+                    <div className="flex justify-between text-[10px] text-slate-600 font-bold">
+                      <span>Low</span><span>Med</span><span>High</span>
+                    </div>
+                  </div>
+
+                </div>
               </div>
-            ))
-          )}
-        </div>
+            </div>
+
+            {/* Add Activity Button */}
+            <button
+              onClick={() => setIsCreateModalOpen(true)}
+              className="w-full bg-slate-800 hover:bg-slate-700 border border-slate-700 hover:border-indigo-500 text-indigo-400 font-bold py-4 rounded-xl shadow-lg transition-all flex items-center justify-center gap-2"
+            >
+              <PlusCircle size={20} /> Add New Activity
+            </button>
+
+            {/* Activity List */}
+            <div className="space-y-4">
+              {activities.length === 0 ? (
+                <p className="text-center text-slate-400 italic py-4">No matching activities found.</p>
+              ) : (
+                activities.map((activity) => (
+                  editingId === activity.id ? (
+                    /* --- EDIT MODE --- */
+                    <div key={activity.id} className="bg-slate-800 p-4 rounded-xl shadow-lg border border-indigo-500 space-y-3">
+                      <input 
+                        className="w-full bg-slate-900 border border-slate-600 rounded-lg px-3 py-2 text-sm text-slate-200 outline-none focus:border-indigo-500" 
+                        value={editForm.name} 
+                        onChange={e => setEditForm({...editForm, name: e.target.value})}
+                      />
+                      <div className="grid grid-cols-2 md:grid-cols-3 gap-2">
+                        <select className="bg-slate-900 border border-slate-600 text-slate-200 rounded-lg px-2 py-1 text-xs outline-none" value={editForm.location} onChange={e => setEditForm({...editForm, location: e.target.value})}>
+                          <option>Indoor</option><option>Outdoor</option>
+                        </select>
+                        <select className="bg-slate-900 border border-slate-600 text-slate-200 rounded-lg px-2 py-1 text-xs outline-none" value={editForm.cost} onChange={e => setEditForm({...editForm, cost: e.target.value})}>
+                          <option>$</option><option>$$</option><option>$$$</option><option>$$$$</option>
+                        </select>
+                        <select className="bg-slate-900 border border-slate-600 text-slate-200 rounded-lg px-2 py-1 text-xs outline-none" value={editForm.season} onChange={e => setEditForm({...editForm, season: e.target.value})}>
+                          <option>Any</option><option>Spring</option><option>Summer</option><option>Fall</option><option>Winter</option>
+                        </select>
+                        <select className="bg-slate-900 border border-slate-600 text-slate-200 rounded-lg px-2 py-1 text-xs outline-none" value={editForm.physical_energy} onChange={e => setEditForm({...editForm, physical_energy: e.target.value})}>
+                          <option>Low</option><option>Med</option><option>High</option>
+                        </select>
+                        <select className="bg-slate-900 border border-slate-600 text-slate-200 rounded-lg px-2 py-1 text-xs outline-none" value={editForm.mental_energy} onChange={e => setEditForm({...editForm, mental_energy: e.target.value})}>
+                          <option>Low</option><option>Med</option><option>High</option>
+                        </select>
+                        <select className="bg-slate-900 border border-slate-600 text-slate-200 rounded-lg px-2 py-1 text-xs outline-none" value={editForm.include_group} onChange={e => setEditForm({...editForm, include_group: e.target.value})}>
+                          <option value="Yes">Group: Yes</option><option value="No">Group: No</option>
+                        </select>
+                      </div>
+                      <div className="flex justify-end gap-2 mt-2">
+                        <button onClick={() => setEditingId(null)} className="p-2 text-slate-400 hover:text-slate-200 bg-slate-700 hover:bg-slate-600 rounded-full transition-colors"><X size={18} /></button>
+                        <button onClick={handleEditSave} className="p-2 text-green-400 hover:text-green-200 bg-green-900/30 hover:bg-green-800/50 rounded-full transition-colors"><Check size={18} /></button>
+                      </div>
+                    </div>
+                  ) : (
+                    /* --- VIEW MODE --- */
+                    <div key={activity.id} className="bg-slate-800 p-4 rounded-xl shadow-sm border border-slate-700 flex flex-col gap-3">
+                      <div className="flex justify-between items-start">
+                        <h3 className="font-bold text-lg text-slate-100">{activity.name}</h3>
+                        <div className="flex gap-1">
+                          <button onClick={() => startEditing(activity)} className="p-2 text-indigo-400 hover:text-indigo-300 hover:bg-indigo-900/30 rounded-full transition-colors"><Edit2 size={18} /></button>
+                          <button onClick={() => handleDelete(activity.id)} className="p-2 text-red-400 hover:text-red-300 hover:bg-red-900/30 rounded-full transition-colors"><Trash2 size={18} /></button>
+                        </div>
+                      </div>
+                      <div className="flex flex-wrap gap-2 text-[11px] font-medium text-slate-400">
+                        <span className="bg-slate-900 border border-slate-700 px-2.5 py-1 rounded-full">📍 {activity.location}</span>
+                        <span className="bg-slate-900 border border-slate-700 px-2.5 py-1 rounded-full">💰 {activity.cost}</span>
+                        <span className="bg-slate-900 border border-slate-700 px-2.5 py-1 rounded-full">⏳ {activity.duration}m</span>
+                        <span className="bg-slate-900 border border-slate-700 px-2.5 py-1 rounded-full">⛅ {activity.season}</span>
+                        <span className="bg-slate-900 border border-slate-700 px-2.5 py-1 rounded-full">👥 {activity.include_group}</span>
+                        <span className="bg-slate-900 border border-slate-700 px-2.5 py-1 rounded-full">⚡ {activity.physical_energy}</span>
+                        <span className="bg-slate-900 border border-slate-700 px-2.5 py-1 rounded-full">🧠 {activity.mental_energy}</span>
+                      </div>
+                    </div>
+                  )
+                ))
+              )}
+            </div>
+          </div>
+        )}
+
+        {/* --- TIE-BREAKER TAB --- */}
+        {activeTab === 'spin' && (
+          <div className="space-y-6 animate-in fade-in duration-300 flex flex-col items-center justify-center min-h-[400px]">
+            <div className="text-center space-y-2 mb-4">
+              <h2 className="text-xl font-bold text-slate-200">Let fate decide</h2>
+              <p className="text-sm text-slate-400">Spinning from your filtered list of {activities.length} {activities.length === 1 ? 'activity' : 'activities'}</p>
+            </div>
+            {/* The Decider Wheel */}
+            <DeciderWheel activities={activities} />
+          </div>
+        )}
 
       </div>
+
+      {/* --- CREATE MODAL --- */}
+      {isCreateModalOpen && (
+        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex justify-center items-end md:items-center z-50 p-4 animate-in fade-in duration-200">
+          <div className="bg-slate-800 border border-indigo-500 rounded-2xl p-6 w-full max-w-md shadow-2xl space-y-5 slide-in-from-bottom-10 md:slide-in-from-bottom-0 md:zoom-in-95">
+            <div className="flex justify-between items-center border-b border-slate-700 pb-3">
+              <h3 className="text-xl font-bold text-slate-100">Create Activity</h3>
+              <button onClick={() => setIsCreateModalOpen(false)} className="text-slate-400 hover:text-slate-200 transition-colors"><X size={20}/></button>
+            </div>
+
+            <form onSubmit={handleCreate} className="space-y-4">
+              <div className="space-y-1.5">
+                <label className="text-[10px] font-bold text-slate-500 uppercase tracking-widest">Activity Name</label>
+                <input
+                  type="text" required placeholder="e.g., Board Game Night"
+                  className="w-full bg-slate-900 border border-slate-600 rounded-lg px-3 py-2.5 text-sm text-slate-200 outline-none focus:border-indigo-500 transition-colors"
+                  value={newActivity.name}
+                  onChange={(e) => setNewActivity({...newActivity, name: e.target.value})}
+                />
+              </div>
+
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-1.5">
+                  <label className="text-[10px] font-bold text-slate-500 uppercase tracking-widest">Location</label>
+                  <select className="w-full bg-slate-900 border border-slate-600 text-slate-200 rounded-lg px-2 py-2.5 text-xs outline-none focus:border-indigo-500 transition-colors" value={newActivity.location} onChange={e => setNewActivity({...newActivity, location: e.target.value})}>
+                    <option>Indoor</option><option>Outdoor</option>
+                  </select>
+                </div>
+                <div className="space-y-1.5">
+                  <label className="text-[10px] font-bold text-slate-500 uppercase tracking-widest">Cost</label>
+                  <select className="w-full bg-slate-900 border border-slate-600 text-slate-200 rounded-lg px-2 py-2.5 text-xs outline-none focus:border-indigo-500 transition-colors" value={newActivity.cost} onChange={e => setNewActivity({...newActivity, cost: e.target.value})}>
+                    <option>$</option><option>$$</option><option>$$$</option><option>$$$$</option>
+                  </select>
+                </div>
+                <div className="space-y-1.5">
+                  <label className="text-[10px] font-bold text-slate-500 uppercase tracking-widest">Season</label>
+                  <select className="w-full bg-slate-900 border border-slate-600 text-slate-200 rounded-lg px-2 py-2.5 text-xs outline-none focus:border-indigo-500 transition-colors" value={newActivity.season} onChange={e => setNewActivity({...newActivity, season: e.target.value})}>
+                    <option>Any</option><option>Spring</option><option>Summer</option><option>Fall</option><option>Winter</option>
+                  </select>
+                </div>
+                <div className="space-y-1.5">
+                  <label className="text-[10px] font-bold text-slate-500 uppercase tracking-widest">Group?</label>
+                  <select className="w-full bg-slate-900 border border-slate-600 text-slate-200 rounded-lg px-2 py-2.5 text-xs outline-none focus:border-indigo-500 transition-colors" value={newActivity.include_group} onChange={e => setNewActivity({...newActivity, include_group: e.target.value})}>
+                    <option value="Yes">Yes</option><option value="No">No</option>
+                  </select>
+                </div>
+                <div className="space-y-1.5">
+                  <label className="text-[10px] font-bold text-slate-500 uppercase tracking-widest">Physical Energy</label>
+                  <select className="w-full bg-slate-900 border border-slate-600 text-slate-200 rounded-lg px-2 py-2.5 text-xs outline-none focus:border-indigo-500 transition-colors" value={newActivity.physical_energy} onChange={e => setNewActivity({...newActivity, physical_energy: e.target.value})}>
+                    <option>Low</option><option>Med</option><option>High</option>
+                  </select>
+                </div>
+                <div className="space-y-1.5">
+                  <label className="text-[10px] font-bold text-slate-500 uppercase tracking-widest">Mental Energy</label>
+                  <select className="w-full bg-slate-900 border border-slate-600 text-slate-200 rounded-lg px-2 py-2.5 text-xs outline-none focus:border-indigo-500 transition-colors" value={newActivity.mental_energy} onChange={e => setNewActivity({...newActivity, mental_energy: e.target.value})}>
+                    <option>Low</option><option>Med</option><option>High</option>
+                  </select>
+                </div>
+              </div>
+
+              <button type="submit" className="w-full mt-4 bg-indigo-600 text-white font-bold py-3 rounded-lg hover:bg-indigo-500 transition-colors shadow-lg shadow-indigo-600/20">
+                Save Activity
+              </button>
+            </form>
+          </div>
+        </div>
+      )}
+
     </div>
   );
 }

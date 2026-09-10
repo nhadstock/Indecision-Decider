@@ -9,9 +9,10 @@ interface Activity {
 
 interface DeciderWheelProps {
   activities: Activity[];
+  onSpinFinished: (id: number) => void;
 }
 
-export default function DeciderWheel({ activities }: DeciderWheelProps) {
+export default function DeciderWheel({ activities, onSpinFinished }: DeciderWheelProps) {
   const [mustSpin, setMustSpin] = useState(false);
   const [prizeNumber, setPrizeNumber] = useState(0);
 
@@ -44,7 +45,7 @@ export default function DeciderWheel({ activities }: DeciderWheelProps) {
           fontSize={14}
           onStopSpinning={() => {
             setMustSpin(false);
-            alert(`Winner: ${wheelData[prizeNumber].option}!`);
+            onSpinFinished(activities[prizeNumber].id);
           }}
         />
       </div>

@@ -19,3 +19,5 @@ class Activity(Base):
     created_at = Column(DateTime, default=lambda: datetime.now(timezone.utc))
     spun_count = Column(Integer, default=0)
     skipped_count = Column(Integer, default=0)
+    manual_pick_count = Column(Integer, default=0)
+    last_chosen_at = Column(DateTime, nullable=True)

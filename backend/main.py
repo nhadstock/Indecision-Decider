@@ -6,7 +6,7 @@ from sqlalchemy.orm import Session
 import models, schemas
 from database import SessionLocal, engine
 from fastapi.staticfiles import StaticFiles
-from fastapi.responses import FileResponse
+from fastapi.responses import FileResponse, StreamingResponse
 import os
 import csv
 import io
@@ -69,6 +69,29 @@ def read_activities(
     result = db.execute(stmt)
     return result.scalars().all()
 
+@app.get("/activities/export")
+def export_activities(db: Session = Depends(get_db)):
+    activities = db.query(models.Activity).all()
+    
+    output = io.StringIO()
+    writer = csv.writer(output)
+    
+    # Write header
+    writer.writerow(["id", "name", "cost", "location", "duration", "season", "include_group", "physical_energy", "mental_energy", "spun_count", "skipped_count", "manual_pick_count", "last_chosen_at"])
+    
+    # Write data rows
+    for a in activities:
+        writer.writerow([a.id, a.name, a.cost, a.location, a.duration, a.season, a.include_group, a.physical_energy, a.mental_energy, a.spun_count, a.skipped_count, a.manual_pick_count, a.last_chosen_at])
+        
+    output.seek(0)
+    return StreamingResponse(output, media_type="text/csv", headers={"Content-Disposition": "attachment; filename=activities_export.csv"})
+
+@app.delete("/activities/clear-all")
+def clear_all_activities(db: Session = Depends(get_db)):
+    db.query(models.Activity).delete()
+    db.commit()
+    return {"message": "All activities wiped successfully"}
+
 @app.delete("/activities/{activity_id}")
 def delete_activity(activity_id: int, db: Session = Depends(get_db)):
     db_activity = db.query(models.Activity).filter(models.Activity.id == activity_id).first()
@@ -111,7 +134,42 @@ def spin_activity(activity_id: int, db: Session = Depends(get_db)):
     db_activity = db.query(models.Activity).filter(models.Activity.id == activity_id).first()
     if db_activity is None:
         raise HTTPException(status_code=404, detail="Activity not found")
-    db_activity.spun_count += 1
+    db_activity.spun_count = (db_activity.spun_count or 0) + 1
+    db.commit()
+    db.refresh(db_activity)
+    return db_activity
+
+@app.post("/activities/{activity_id}/choose", response_model=schemas.ActivityResponse)
+def choose_activity(activity_id: int, db: Session = Depends(get_db)):
+    from datetime import datetime, timezone
+    db_activity = db.query(models.Activity).filter(models.Activity.id == activity_id).first()
+    if db_activity is None:
+        raise HTTPException(status_code=404, detail="Activity not found")
+    db_activity.manual_pick_count = (db_activity.manual_pick_count or 0) + 1
+    db_activity.last_chosen_at = datetime.now(timezone.utc)
+    db.commit()
+    db.refresh(db_activity)
+    return db_activity
+
+@app.post("/activities/{activity_id}/reset-metrics", response_model=schemas.ActivityResponse)
+def reset_activity_metrics(activity_id: int, db: Session = Depends(get_db)):
+    db_activity = db.query(models.Activity).filter(models.Activity.id == activity_id).first()
+    if db_activity is None:
+        raise HTTPException(status_code=404, detail="Activity not found")
+    db_activity.spun_count = 0
+    db_activity.skipped_count = 0
+    db_activity.manual_pick_count = 0
+    db_activity.last_chosen_at = None
+    db.commit()
+    db.refresh(db_activity)
+    return db_activity
+
+@app.post("/activities/{activity_id}/skip", response_model=schemas.ActivityResponse)
+def skip_activity(activity_id: int, db: Session = Depends(get_db)):
+    db_activity = db.query(models.Activity).filter(models.Activity.id == activity_id).first()
+    if db_activity is None:
+        raise HTTPException(status_code=404, detail="Activity not found")
+    db_activity.skipped_count = (db_activity.skipped_count or 0) + 1
     db.commit()
     db.refresh(db_activity)
     return db_activity

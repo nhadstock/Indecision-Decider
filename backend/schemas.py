@@ -1,5 +1,6 @@
 from pydantic import BaseModel
 from datetime import datetime
+from typing import Optional
 
 class ActivityBase(BaseModel):
     name: str
@@ -18,9 +19,11 @@ class ActivityCreate(ActivityBase):
 # Used when returning an activity from the API (includes ID and analytics)
 class ActivityResponse(ActivityBase):
     id: int
-    created_at: datetime
-    spun_count: int
-    skipped_count: int
+    created_at: Optional[datetime] = None
+    spun_count: Optional[int] = 0
+    skipped_count: Optional[int] = 0
+    manual_pick_count: Optional[int] = 0
+    last_chosen_at: Optional[datetime] = None
 
     class Config:
         from_attributes = True # Tells Pydantic to read data even if it is not a standard dict
